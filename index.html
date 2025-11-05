@@ -1,0 +1,2871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KitabKonnekt - Safe Book Trading</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f8fa;
+        }
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+        .modal-content {
+            transition: transform 0.25s ease;
+        }
+        .loader {
+            border-top-color: #4f46e5;
+            animation: spin 1s linear infinite;
+        }
+        .loader-sm {
+            border-top-color: #c7d2fe;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        #message-box {
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            transform: translateY(-100%);
+            opacity: 0;
+        }
+        #message-box.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        #book-buddy-modal-content, #book-details-modal-content {
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+        input:focus, select:focus, textarea:focus {
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+            border-color: #6366f1;
+        }
+        .thumbnail.active {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 2px #4f46e5;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+        .book-image {
+            background-color: #e2e8f0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.2'%3E%3Cpath d='M0 38.59l2.83-2.83 1.41 1.41L1.41 40H0v-1.41zM0 1.4l2.83 2.83 1.41-1.41L1.41 0H0v1.41zM38.59 40l-2.83-2.83 1.41-1.41L40 38.59V40h-1.41zM40 1.41l-2.83 2.83-1.41-1.41L38.59 0H40v1.41zM20 18.6l2.83-2.83 1.41 1.41L21.41 20l2.83 2.83-1.41 1.41L20 21.41l-2.83 2.83-1.41-1.41L18.59 20l-2.83-2.83 1.41-1.41L20 18.59z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .safety-shield {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .verified-badge {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        .dark-mode {
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+        .dark-mode .bg-white {
+            background-color: #2d3748;
+        }
+        .dark-mode .text-gray-800 {
+            color: #e2e8f0;
+        }
+        .dark-mode .text-gray-600 {
+            color: #cbd5e0;
+        }
+        .dark-mode .border-gray-200 {
+            border-color: #4a5568;
+        }
+        .dark-mode .bg-gray-100 {
+            background-color: #4a5568;
+        }
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .google-btn {
+            background: white;
+            color: #757575;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            padding: 10px 16px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+        .google-btn:hover {
+            background: #f8f9fa;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .google-icon {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased">
+    <!-- Header -->
+    <header class="bg-white/90 shadow-sm sticky top-0 z-40 backdrop-blur-lg dark:bg-gray-800/90">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <svg class="w-8 h-8 text-indigo-600 dark:text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                </svg>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">KitabKonnekt</h1>
+                <span class="verified-badge text-white text-xs font-semibold px-2 py-1 rounded-full flex items-center">
+                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    SAFE TRADING
+                </span>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <!-- User Profile or Login Button -->
+                <div id="user-profile-section" class="hidden">
+                    <div class="flex items-center space-x-3">
+                        <div class="relative group">
+                            <img id="user-avatar" src="" alt="User" class="user-avatar cursor-pointer border-2 border-indigo-200">
+                            <div id="user-dropdown" class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 hidden z-50">
+                                <div class="flex items-center space-x-3 mb-3">
+                                    <img id="dropdown-avatar" src="" alt="User" class="user-avatar">
+                                    <div>
+                                        <p id="dropdown-name" class="font-semibold text-gray-800 dark:text-white text-sm"></p>
+                                        <p id="dropdown-email" class="text-gray-500 dark:text-gray-400 text-xs"></p>
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <button id="my-listings-btn" class="w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 py-2 px-3 rounded-lg transition-all">
+                                        My Listings
+                                    </button>
+                                    <button id="my-wishlist-btn" class="w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 py-2 px-3 rounded-lg transition-all">
+                                        My Wishlist
+                                    </button>
+                                    <button id="profile-settings-btn" class="w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 py-2 px-3 rounded-lg transition-all">
+                                        Profile Settings
+                                    </button>
+                                    <hr class="border-gray-200 dark:border-gray-700">
+                                    <button id="logout-btn" class="w-full text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 py-2 px-3 rounded-lg transition-all">
+                                        Logout
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="login-section" class="flex items-center space-x-3">
+                    <button id="login-btn" class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-all">
+                        Login / Sign Up
+                    </button>
+                </div>
+
+                <!-- Dark Mode Toggle -->
+                <button id="dark-mode-toggle" class="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all">
+                    <svg id="dark-mode-icon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                    <svg id="light-mode-icon" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </button>
+
+                <!-- Wishlist Button -->
+                <button id="wishlist-btn" class="p-2 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all relative">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    <span id="wishlist-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+                </button>
+
+                <!-- Quick Filters Dropdown -->
+                <div class="relative">
+                    <button id="quick-filters-btn" class="flex items-center space-x-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-2 px-3 rounded-full transition-all">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        </svg>
+                        <span>Filters</span>
+                    </button>
+                    <div id="quick-filters-dropdown" class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 hidden z-50">
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Price Range</label>
+                                <div class="flex space-x-2">
+                                    <input type="number" id="min-price" placeholder="Min" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm">
+                                    <input type="number" id="max-price" placeholder="Max" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Condition</label>
+                                <select id="condition-filter" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm">
+                                    <option value="">All Conditions</option>
+                                    <option value="New-like">New-like</option>
+                                    <option value="Good">Good</option>
+                                    <option value="Average">Average</option>
+                                    <option value="Readable">Readable</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sort By</label>
+                                <select id="sort-filter" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm">
+                                    <option value="newest">Newest First</option>
+                                    <option value="price-low">Price: Low to High</option>
+                                    <option value="price-high">Price: High to Low</option>
+                                    <option value="distance">Nearest First</option>
+                                </select>
+                            </div>
+                            <button id="apply-filters" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-all">
+                                Apply Filters
+                            </button>
+                            <button id="clear-filters" class="w-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-2 px-4 rounded-lg transition-all">
+                                Clear All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="translate-btn" class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-all" data-translate-key="translateBtn">
+                    Translate (Hinglish)
+                </button>
+                <button id="open-donate-modal-header" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-5 rounded-full shadow-md hover:shadow-lg transition-all duration-300 ease-in-out transform hover:-translate-y-0.5" data-translate-key="donateBtn">
+                    Donate Book
+                </button>
+                <button id="open-sell-modal-header" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-5 rounded-full shadow-md hover:shadow-lg transition-all duration-300 ease-in-out flex items-center space-x-2 transform hover:-translate-y-0.5" data-translate-key="sellBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+                        <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                    </svg>
+                    <span>Sell Book</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Safety Alert Banner -->
+    <div class="safety-shield text-white py-3 px-4 text-center">
+        <div class="container mx-auto flex items-center justify-center space-x-2">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <span class="font-medium">🛡️ Safe Trading: Meet in public, verify books, no advance payments</span>
+        </div>
+    </div>
+
+    <!-- Study Tip -->
+    <section class="bg-gradient-to-r from-blue-500 to-indigo-600 py-4 px-4 sm:px-6 lg:px-8 text-center shadow-lg">
+        <div class="container mx-auto">
+            <p class="text-white font-medium text-sm">💡 <span id="study-tip-text" data-translate-key="loadingTip">Loading daily study tip...</span></p>
+        </div>
+    </section>
+
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-r from-indigo-600 to-purple-700 text-white shadow-xl">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 text-center">
+            <div class="flex justify-center mb-4">
+                <div class="verified-badge text-white text-sm font-semibold px-4 py-2 rounded-full flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                    </svg>
+                    100% Safe & Verified Trading
+                </div>
+            </div>
+            <h1 class="text-4xl md:text-6xl font-bold mb-4" data-translate-key="heroTitle">Purani Kitabein, Nayi Zindagi</h1>
+            <p class="text-lg md:text-xl text-indigo-100 max-w-2xl mx-auto mb-8" data-translate-key="heroSubtitle">Find affordable used books from verified students near you. Safe trading guaranteed.</p>
+            
+            <!-- Voice Search Button -->
+            <div class="mb-8 flex justify-center">
+                <button id="voice-search-btn" class="bg-white/20 hover:bg-white/30 text-white font-semibold py-3 px-6 rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out flex items-center space-x-2 backdrop-blur-sm">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
+                    <span>Voice Search</span>
+                </button>
+            </div>
+
+            <button id="hero-sell-btn" class="bg-white text-indigo-700 font-semibold py-3 px-8 rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-105 text-lg" data-translate-key="heroBtn">
+                Start Selling Safely
+            </button>
+        </div>
+    </section>
+
+    <!-- Safety Features -->
+    <section class="bg-white dark:bg-gray-800 py-12">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center text-gray-900 dark:text-white mb-12">🛡️ Why KitabKonnekt is Safe?</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="text-center p-6 bg-blue-50 dark:bg-blue-900/20 rounded-2xl">
+                    <div class="w-16 h-16 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl">✅</span>
+                    </div>
+                    <h3 class="font-semibold text-gray-800 dark:text-white mb-2">Verified Sellers</h3>
+                    <p class="text-gray-600 dark:text-gray-300 text-sm">All sellers are college verified students</p>
+                </div>
+                <div class="text-center p-6 bg-green-50 dark:bg-green-900/20 rounded-2xl">
+                    <div class="w-16 h-16 bg-green-100 dark:bg-green-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl">💰</span>
+                    </div>
+                    <h3 class="font-semibold text-gray-800 dark:text-white mb-2">No Advance</h3>
+                    <p class="text-gray-600 dark:text-gray-300 text-sm">Pay only after book inspection</p>
+                </div>
+                <div class="text-center p-6 bg-yellow-50 dark:bg-yellow-900/20 rounded-2xl">
+                    <div class="w-16 h-16 bg-yellow-100 dark:bg-yellow-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl">📱</span>
+                    </div>
+                    <h3 class="font-semibold text-gray-800 dark:text-white mb-2">Instant Report</h3>
+                    <p class="text-gray-600 dark:text-gray-300 text-sm">Report suspicious listings immediately</p>
+                </div>
+                <div class="text-center p-6 bg-red-50 dark:bg-red-900/20 rounded-2xl">
+                    <div class="w-16 h-16 bg-red-100 dark:bg-red-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl">🔒</span>
+                    </div>
+                    <h3 class="font-semibold text-gray-800 dark:text-white mb-2">Scam Protection</h3>
+                    <p class="text-gray-600 dark:text-gray-300 text-sm">AI-powered scam detection</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        
+        <!-- Search Bar -->
+        <div class="mb-10 -mt-20 relative z-10">
+            <div class="relative max-w-2xl mx-auto">
+                <input type="text" id="search-bar" placeholder="Search by title, author, subject, or pincode..." data-translate-key="searchPlaceholder" class="w-full p-4 pr-12 text-base border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white rounded-full shadow-2xl focus:outline-none focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-500 transition-all duration-300">
+                <svg class="w-6 h-6 text-gray-400 absolute top-1/2 right-5 -translate-y-1/2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+            </div>
+        </div>
+
+        <!-- How It Works -->
+        <section id="how-it-works" class="mb-12 bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg mt-12">
+            <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6 text-center" data-translate-key="howItWorksTitle">How It Works?</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div class="flex flex-col items-center p-6 rounded-lg transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md">
+                    <div class="flex items-center justify-center w-16 h-16 bg-indigo-100 dark:bg-indigo-800 text-indigo-600 dark:text-indigo-300 rounded-full shadow-lg mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Z"/><path d="M15 2v20"/><path d="M8 7h4"/><path d="M8 12h4"/><path d="M8 17h4"/></svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-2" data-translate-key="step1Title">1. Post Your Ad</h3>
+                    <p class="text-gray-600 dark:text-gray-300" data-translate-key="step1Desc">Click "Sell Book" or "Donate Book" and post your details in 2 minutes.</p>
+                </div>
+                <div class="flex flex-col items-center p-6 rounded-lg transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md">
+                    <div class="flex items-center justify-center w-16 h-16 bg-indigo-100 dark:bg-indigo-800 text-indigo-600 dark:text-indigo-300 rounded-full shadow-lg mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-2" data-translate-key="step2Title">2. Browse & Search</h3>
+                    <p class="text-gray-600 dark:text-gray-300" data-translate-key="step2Desc">Use the search bar to find the book, subject, or pincode you need.</p>
+                </div>
+                <div class="flex flex-col items-center p-6 rounded-lg transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:shadow-md">
+                    <div class="flex items-center justify-center w-16 h-16 bg-indigo-100 dark:bg-indigo-800 text-indigo-600 dark:text-indigo-300 rounded-full shadow-lg mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 18a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2"/><rect width="18" height="18" x="3" y="4" rx="2"/><circle cx="12" cy="10" r="2"/><line x1="12" x2="12" y1="2" y2="4"/><line x1="12" x2="12" y1="14" y2="22"/></svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-2" data-translate-key="step3Title">3. Connect Safely</h3>
+                    <p class="text-gray-600 dark:text-gray-300" data-translate-key="step3Desc">Like a book? Meet in public places and verify before payment.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Book Listings -->
+        <section id="listings-section">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 dark:text-white" data-translate-key="listingsTitle">Verified Listings</h2>
+                <div class="flex items-center space-x-4">
+                    <!-- Price Drop Alerts Toggle -->
+                    <button id="price-alerts-toggle" class="flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-2 px-4 rounded-full transition-all">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        <span>Price Alerts</span>
+                    </button>
+                    
+                    <div class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+                        <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>All listings are verified for safety</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="loader" class="flex justify-center items-center py-20">
+                <div class="loader w-12 h-12 border-4 border-gray-200 dark:border-gray-600 rounded-full"></div>
+            </div>
+
+            <div id="no-books-message" class="hidden text-center py-20 bg-white dark:bg-gray-800 rounded-2xl shadow-lg">
+                <svg class="w-16 h-16 mx-auto text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                </svg>
+                <h3 class="mt-4 text-xl font-semibold text-gray-700 dark:text-gray-300" data-translate-key="noBooksTitle">No books found</h3>
+                <p class="mt-2 text-gray-500 dark:text-gray-400" data-translate-key="noBooksDesc">Be the first one to sell a book!</p>
+            </div>
+
+            <div id="book-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <!-- Book cards will be injected here -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Safety Tips Section -->
+    <section class="bg-yellow-50 dark:bg-yellow-900/20 border-t border-yellow-200 dark:border-yellow-800 py-12 mt-16">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">🛡️ Safety First - Trading Guidelines</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border-l-4 border-green-500">
+                    <div class="text-2xl mb-3">📍</div>
+                    <h3 class="font-semibold text-gray-800 dark:text-white mb-2">Meet in Public</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">College campuses, libraries, coffee shops. Avoid isolated places.</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border-l-4 border-blue-500">
+                    <div class="text-2xl mb-3">📖</div>
+                    <h3 class="font-semibold text-gray-800 dark:text-white mb-2">Inspect Book</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">Check pages, condition, edition before payment. No surprises.</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border-l-4 border-red-500">
+                    <div class="text-2xl mb-3">🚫</div>
+                    <h3 class="font-semibold text-gray-800 dark:text-white mb-2">No Advance</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">Never pay in advance. Cash on delivery only after verification.</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border-l-4 border-purple-500">
+                    <div class="text-2xl mb-3">📞</div>
+                    <h3 class="font-semibold text-gray-800 dark:text-white mb-2">Verify Contact</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">Call to confirm meeting. Use college email IDs when possible.</p>
+                </div>
+            </div>
+            
+            <!-- Emergency Report Section -->
+            <div class="mt-8 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 text-center">
+                <h3 class="text-xl font-bold text-red-800 dark:text-red-300 mb-2">🚨 See Something Suspicious?</h3>
+                <p class="text-red-700 dark:text-red-300 mb-4">Report immediately to keep our community safe</p>
+                <button id="emergency-report-btn" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-full transition-all duration-300">
+                    ⚠️ Report Suspicious Activity
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 dark:bg-gray-900 text-gray-300">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
+            <div class="flex items-center justify-center space-x-2 mb-4">
+                <svg class="w-7 h-7 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                </svg>
+                <h2 class="text-2xl font-bold text-white">KitabKonnekt</h2>
+            </div>
+            <p class="text-sm max-w-lg mx-auto mb-4" data-translate-key="footerDesc">
+                A safe, student-focused marketplace to buy, sell, and donate used books. Your safety is our priority.
+            </p>
+            <div class="flex justify-center space-x-6 mb-4">
+                <span class="text-green-400 text-sm">✅ Verified Sellers</span>
+                <span class="text-blue-400 text-sm">🛡️ Safe Trading</span>
+                <span class="text-yellow-400 text-sm">⚡ Instant Support</span>
+            </div>
+            <p class="text-xs text-gray-400" data-translate-key="footerRights">
+                &copy; 2024 KitabKonnekt. Safe trading platform for students.
+            </p>
+        </div>
+    </footer>
+
+    <!-- All Modals -->
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4 hidden pointer-events-none opacity-0">
+        <div class="modal-content bg-white dark:bg-gray-800 w-full max-w-md rounded-3xl shadow-2xl p-6 sm:p-8 transform -translate-y-10 scale-95 overflow-y-auto max-h-screen">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Welcome to KitabKonnekt</h2>
+                <button id="close-login-modal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="text-center mb-6">
+                    <p class="text-gray-600 dark:text-gray-300">Sign in to list books, save favorites, and connect with other students</p>
+                </div>
+                
+                <!-- Google Sign-in Button -->
+                <button id="google-signin-btn" class="google-btn">
+                    <svg class="google-icon" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Continue with Google
+                </button>
+                
+                <div class="relative flex items-center my-6">
+                    <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+                    <span class="flex-shrink mx-4 text-gray-500 dark:text-gray-400 text-sm">or</span>
+                    <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+                </div>
+                
+                <!-- Email/Password Login Form -->
+                <form id="email-login-form" class="space-y-4">
+                    <div>
+                        <label for="login-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                        <input type="email" id="login-email" name="login-email" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="your.email@example.com">
+                    </div>
+                    
+                    <div>
+                        <label for="login-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                        <input type="password" id="login-password" name="login-password" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="••••••••">
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="remember-me" class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 dark:focus:ring-indigo-400">
+                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Remember me</span>
+                        </label>
+                        <button type="button" id="forgot-password-btn" class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">Forgot password?</button>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-300">
+                        Sign In
+                    </button>
+                </form>
+                
+                <div class="text-center">
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        Don't have an account? 
+                        <button id="switch-to-signup" class="text-indigo-600 dark:text-indigo-400 font-medium hover:underline">Sign up</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signup-modal" class="modal fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4 hidden pointer-events-none opacity-0">
+        <div class="modal-content bg-white dark:bg-gray-800 w-full max-w-md rounded-3xl shadow-2xl p-6 sm:p-8 transform -translate-y-10 scale-95 overflow-y-auto max-h-screen">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Create Your Account</h2>
+                <button id="close-signup-modal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="text-center mb-6">
+                    <p class="text-gray-600 dark:text-gray-300">Join KitabKonnekt to start trading books safely</p>
+                </div>
+                
+                <!-- Google Sign-up Button -->
+                <button id="google-signup-btn" class="google-btn">
+                    <svg class="google-icon" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Sign up with Google
+                </button>
+                
+                <div class="relative flex items-center my-6">
+                    <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+                    <span class="flex-shrink mx-4 text-gray-500 dark:text-gray-400 text-sm">or</span>
+                    <div class="flex-grow border-t border-gray-300 dark:border-gray-600"></div>
+                </div>
+                
+                <!-- Email/Password Signup Form -->
+                <form id="email-signup-form" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="signup-firstname" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First Name</label>
+                            <input type="text" id="signup-firstname" name="signup-firstname" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="John">
+                        </div>
+                        <div>
+                            <label for="signup-lastname" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Name</label>
+                            <input type="text" id="signup-lastname" name="signup-lastname" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="Doe">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="signup-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                        <input type="email" id="signup-email" name="signup-email" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="your.email@example.com">
+                    </div>
+                    
+                    <div>
+                        <label for="signup-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                        <input type="password" id="signup-password" name="signup-password" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="••••••••">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Must be at least 8 characters</p>
+                    </div>
+                    
+                    <div>
+                        <label for="signup-confirm-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm Password</label>
+                        <input type="password" id="signup-confirm-password" name="signup-confirm-password" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="••••••••">
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <input type="checkbox" id="terms-agreement" required class="rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 dark:focus:ring-indigo-400">
+                        <label for="terms-agreement" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                            I agree to the <a href="#" class="text-indigo-600 dark:text-indigo-400 hover:underline">Terms of Service</a> and <a href="#" class="text-indigo-600 dark:text-indigo-400 hover:underline">Privacy Policy</a>
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-300">
+                        Create Account
+                    </button>
+                </form>
+                
+                <div class="text-center">
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        Already have an account? 
+                        <button id="switch-to-login" class="text-indigo-600 dark:text-indigo-400 font-medium hover:underline">Sign in</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Settings Modal -->
+    <div id="profile-settings-modal" class="modal fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4 hidden pointer-events-none opacity-0">
+        <div class="modal-content bg-white dark:bg-gray-800 w-full max-w-lg rounded-3xl shadow-2xl p-6 sm:p-8 transform -translate-y-10 scale-95 overflow-y-auto max-h-screen">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Profile Settings</h2>
+                <button id="close-profile-modal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <form id="profile-settings-form" class="space-y-4">
+                <div class="flex items-center space-x-4 mb-6">
+                    <img id="profile-avatar" src="" alt="Profile" class="user-avatar w-16 h-16">
+                    <div>
+                        <button type="button" id="change-avatar-btn" class="text-sm text-indigo-600 dark:text-indigo-400 font-medium hover:underline">Change photo</button>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">JPG, GIF or PNG. Max size 2MB</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="profile-firstname" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First Name</label>
+                        <input type="text" id="profile-firstname" name="profile-firstname" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none">
+                    </div>
+                    <div>
+                        <label for="profile-lastname" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Name</label>
+                        <input type="text" id="profile-lastname" name="profile-lastname" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none">
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="profile-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                    <input type="email" id="profile-email" name="profile-email" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none">
+                </div>
+                
+                <div>
+                    <label for="profile-phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
+                    <input type="tel" id="profile-phone" name="profile-phone" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="+91 98765 43210">
+                </div>
+                
+                <div>
+                    <label for="profile-pincode" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Default Pincode</label>
+                    <input type="number" id="profile-pincode" name="profile-pincode" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="400001">
+                </div>
+                
+                <div>
+                    <label for="profile-college" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">College/University</label>
+                    <input type="text" id="profile-college" name="profile-college" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="Your college name">
+                </div>
+                
+                <div class="pt-4">
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-300">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- My Listings Modal -->
+    <div id="my-listings-modal" class="modal fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4 hidden pointer-events-none opacity-0">
+        <div class="modal-content bg-white dark:bg-gray-800 w-full max-w-4xl rounded-3xl shadow-2xl p-6 sm:p-8 transform -translate-y-10 scale-95 overflow-y-auto max-h-screen">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">My Listings</h2>
+                <button id="close-listings-modal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div id="my-listings-container" class="space-y-4">
+                <!-- User's listings will be injected here -->
+                <div class="text-center py-10 text-gray-500 dark:text-gray-400">
+                    <svg class="w-16 h-16 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                    </svg>
+                    <p>You haven't listed any books yet.</p>
+                    <button id="start-selling-from-listings" class="mt-4 text-indigo-600 dark:text-indigo-400 font-medium hover:underline">Start selling your first book</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Wishlist Modal -->
+    <div id="my-wishlist-modal" class="modal fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4 hidden pointer-events-none opacity-0">
+        <div class="modal-content bg-white dark:bg-gray-800 w-full max-w-4xl rounded-3xl shadow-2xl p-6 sm:p-8 transform -translate-y-10 scale-95 overflow-y-auto max-h-screen">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">My Wishlist</h2>
+                <button id="close-wishlist-modal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div id="my-wishlist-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Wishlisted books will be injected here -->
+                <div class="col-span-2 text-center py-10 text-gray-500 dark:text-gray-400">
+                    <svg class="w-16 h-16 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    <p>Your wishlist is empty.</p>
+                    <p class="text-sm mt-2">Start adding books you're interested in!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sell Book Modal -->
+    <div id="sell-book-modal" class="modal fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4 hidden pointer-events-none opacity-0">
+        <div class="modal-content bg-white dark:bg-gray-800 w-full max-w-lg rounded-3xl shadow-2xl p-6 sm:p-8 transform -translate-y-10 scale-95 overflow-y-auto max-h-screen">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white" data-translate-key="sellModalTitle">Sell Your Book Safely</h2>
+                <button id="close-sell-modal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Safety Notice -->
+            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-6">
+                <div class="flex items-start space-x-3">
+                    <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                    <div>
+                        <h4 class="font-semibold text-blue-800 dark:text-blue-300 text-sm">Safe Trading Guidelines</h4>
+                        <p class="text-blue-700 dark:text-blue-300 text-xs mt-1">• Meet in public places only • No advance payments • Verify buyer identity</p>
+                    </div>
+                </div>
+            </div>
+            
+            <form id="sell-book-form" class="space-y-4">
+                <div>
+                    <label for="book-image-url-1" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" data-translate-key="coverPhotoLabel">Book Cover Photo URL</label>
+                    <input type="url" id="book-image-url-1" name="book-image-url-1" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="e.g., https://i.imgur.com/...">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" data-translate-key="imgbbHint">Upload photos to <a href="https://imgbb.com/" target="_blank" class="text-indigo-600 dark:text-indigo-400 underline">imgbb.com</a> and paste the link here.</p>
+                </div>
+                <div>
+                    <label for="book-image-url-2" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" data-translate-key="backCoverLabel">Back Cover URL (Optional)</label>
+                    <input type="url" id="book-image-url-2" name="book-image-url-2" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="Paste link here...">
+                </div>
+                <div>
+                    <label for="book-image-url-3" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" data-translate-key="indexPageLabel">Index Page URL (Optional)</label>
+                    <input type="url" id="book-image-url-3" name="book-image-url-3" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="Paste link here...">
+                </div>
+
+                <hr class="border-gray-100 dark:border-gray-700"/>
+
+                <div>
+                    <label for="book-title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" data-translate-key="titleLabel">Book Title</label>
+                    <input type="text" id="book-title" name="book-title" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="e.g., Concepts of Physics">
+                </div>
+                
+                <div>
+                    <label for="book-author" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" data-translate-key="authorLabel">Author</label>
+                    <input type="text" id="book-author" name="book-author" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="e.g., H.C. Verma">
+                </div>
+
+                <div>
+                    <button type="button" id="generate-desc-btn" class="w-full bg-purple-100 dark:bg-purple-900/20 hover:bg-purple-200 dark:hover:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-semibold py-2.5 px-4 rounded-xl shadow-sm transition-all duration-300 ease-in-out flex items-center justify-center space-x-2 transform hover:-translate-y-0.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+                            <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.39-3.47 3.385a.75.75 0 00.277 1.216l4.574 1.849 1.83 4.401c.321.772 1.415.772 1.736 0l1.83-4.401 4.753-.39 3.47-3.385a.75.75 0 00-.277-1.216l-4.574-1.849-1.83-4.401zM11.25 12.138a.75.75 0 00-1.5 0v2.25a.75.75 0 001.5 0v-2.25z" clip-rule="evenodd" />
+                        </svg>
+                        <span id="generate-desc-text" data-translate-key="generateDescBtn">✨ Generate AI Description</span>
+                        <div id="generate-desc-loader" class="hidden loader loader-sm w-4 h-4 border-2 border-purple-200 dark:border-purple-800 rounded-full"></div>
+                    </button>
+                </div>
+
+                <div>
+                    <label for="book-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" data-translate-key="descLabel">Book Description</label>
+                    <textarea id="book-description" name="book-description" rows="3" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="A short description of the book..."></textarea>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="book-subject" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" data-translate-key="subjectLabel">Subject / Category</label>
+                        <input type="text" id="book-subject" name="book-subject" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="e.g., Physics, Engineering">
+                    </div>
+                    <div>
+                        <label for="book-condition" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" data-translate-key="conditionLabel">Condition</label>
+                        <select id="book-condition" name="book-condition" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none bg-white dark:bg-gray-700">
+                            <option value="New-like" data-translate-key="conditionNew">New-like</option>
+                            <option value="Good" data-translate-key="conditionGood">Good</option>
+                            <option value="Average" data-translate-key="conditionAvg">Average</option>
+                            <option value="Readable" data-translate-key="conditionReadable">Readable (has notes)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="book-pincode" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" data-translate-key="pincodeLabel">Pincode</label>
+                        <input type="number" id="book-pincode" name="book-pincode" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="e.g., 400001">
+                    </div>
+                    <div>
+                        <label for="book-price" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" data-translate-key="priceLabel">Selling Price (₹)</label>
+                        <div class="relative">
+                            <input type="number" id="book-price" name="book-price" min="10" max="5000" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="e.g., 150">
+                            <button type="button" id="generate-price-btn" class="absolute top-1/2 right-2 -translate-y-1/2 bg-amber-100 dark:bg-amber-900/20 hover:bg-amber-200 dark:hover:bg-amber-900/30 text-amber-800 dark:text-amber-300 font-semibold py-1.5 px-3 rounded-full text-xs shadow-sm transition-all transform hover:scale-105">
+                                <span id="generate-price-text" data-translate-key="suggestPriceBtn">✨ Suggest</span>
+                                <div id="generate-price-loader" class="hidden loader loader-sm w-3 h-3 border-2 border-amber-200 dark:border-amber-800 rounded-full"></div>
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Price range: ₹10 - ₹5000 (for safety)</p>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="contact-info" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" data-translate-key="contactLabel">Your Contact Info (Phone or Email)</label>
+                    <input type="text" id="contact-info" name="contact-info" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="Your mobile number or email address">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">College email IDs are recommended for safety</p>
+                </div>
+                
+                <!-- Safety Agreement -->
+                <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl">
+                    <div class="flex items-start space-x-3">
+                        <input type="checkbox" id="safety-agreement" required class="mt-1 rounded border-gray-300 dark:border-gray-600 text-indigo-600 dark:text-indigo-400 focus:ring-indigo-500 dark:focus:ring-indigo-400">
+                        <label for="safety-agreement" class="text-sm text-gray-700 dark:text-gray-300">
+                            I agree to follow safe trading practices: meet in public places, no advance payments, and verify buyer/seller identity. I understand that KitabKonnekt promotes safe trading but is not responsible for individual transactions.
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="pt-4">
+                    <button type="submit" id="submit-book-button" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-full shadow-lg hover:shadow-indigo-500/30 transition-all duration-300 ease-in-out flex items-center justify-center transform hover:-translate-y-0.5">
+                        <span id="submit-text" data-translate-key="postAdBtn">Post Your Ad Safely</span>
+                        <div id="submit-loader" class="hidden loader w-5 h-5 border-2 border-gray-200 dark:border-gray-600 rounded-full"></div>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Donate Book Modal -->
+    <div id="donate-book-modal" class="modal fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4 hidden pointer-events-none opacity-0">
+        <div class="modal-content bg-white dark:bg-gray-800 w-full max-w-lg rounded-3xl shadow-2xl p-6 sm:p-8 transform -translate-y-10 scale-95 overflow-y-auto max-h-screen">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-emerald-700 dark:text-emerald-400" data-translate-key="donateModalTitle">Donate Your Book</h2>
+                <button id="close-donate-modal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <form id="donate-book-form" class="space-y-4">
+                <div>
+                    <label for="donate-book-image-url" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" data-translate-key="photoLabelOptional">Book Photo URL (Optional)</label>
+                    <input type="url" id="donate-book-image-url" name="donate-book-image-url" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="e.g., https://i.imgur.com/...">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" data-translate-key="imgbbHint">Upload to <a href="https://imgbb.com/" target="_blank" class="text-indigo-600 dark:text-indigo-400 underline">imgbb.com</a> and paste the link.</p>
+                </div>
+
+                <hr class="border-gray-100 dark:border-gray-700"/>
+
+                <div>
+                    <label for="donate-book-title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" data-translate-key="titleLabel">Book Title</label>
+                    <input type="text" id="donate-book-title" name="donate-book-title" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="e.g., Concepts of Physics">
+                </div>
+                
+                <div>
+                    <label for="donate-book-subject" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" data-translate-key="subjectLabel">Subject / Category</label>
+                    <input type="text" id="donate-book-subject" name="donate-book-subject" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="e.g., Physics, Engineering">
+                </div>
+
+                <div>
+                    <label for="donate-book-pincode" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" data-translate-key="pincodeLabel">Pincode (Your Location)</label>
+                    <input type="number" id="donate-book-pincode" name="donate-book-pincode" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="e.g., 400001">
+                </div>
+
+                <div>
+                    <label for="donate-contact-info" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" data-translate-key="contactLabel">Your Contact Info (Phone or Email)</label>
+                    <input type="text" id="donate-contact-info" name="donate-contact-info" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="Your mobile number or email address">
+                </div>
+                
+                <div class="pt-4">
+                    <button type="submit" id="submit-donate-button" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-full shadow-lg hover:shadow-emerald-500/30 transition-all duration-300 ease-in-out flex items-center justify-center transform hover:-translate-y-0.5">
+                        <span id="submit-donate-text" data-translate-key="postDonationBtn">Post Your Donation</span>
+                        <div id="submit-donate-loader" class="hidden loader w-5 h-5 border-2 border-gray-200 dark:border-gray-600 rounded-full"></div>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Book Details Modal -->
+    <div id="book-details-modal" class="modal fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4 hidden pointer-events-none opacity-0">
+        <div id="book-details-modal-content" class="modal-content bg-white dark:bg-gray-800 w-full max-w-3xl rounded-3xl shadow-2xl p-6 sm:p-8 transform -translate-y-10 scale-95">
+            <button id="close-details-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <div id="details-image-gallery" class="mb-4">
+                        <img id="details-main-image" src="" alt="Book Cover" class="w-full h-80 object-cover rounded-2xl shadow-lg mb-4 border border-gray-200 dark:border-gray-700 book-image">
+                        <div id="details-thumbnails" class="flex space-x-2 overflow-x-auto">
+                            <!-- Thumbnails will be injected here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col">
+                    <div class="flex items-center justify-between mb-2">
+                        <h2 id="details-title" class="text-3xl font-bold text-gray-900 dark:text-white">Book Title</h2>
+                        <button id="report-book-btn" class="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 px-3 py-1 rounded-full transition-all">
+                            ⚠️ Report
+                        </button>
+                    </div>
+                    <p id="details-author" class="text-lg text-gray-600 dark:text-gray-400 mb-4">by Author</p>
+                    
+                    <div id="details-price" class="text-4xl font-bold text-indigo-600 dark:text-indigo-400 mb-4">₹0</div>
+
+                    <div class="mb-4 space-x-2">
+                        <span id="details-subject" class="inline-block bg-indigo-100 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-300 text-sm font-semibold px-3 py-1 rounded-full"></span>
+                        <span id="details-condition" class="inline-block bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-sm font-semibold px-3 py-1 rounded-full"></span>
+                        <span id="details-pincode" class="inline-block bg-amber-100 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 text-sm font-semibold px-3 py-1 rounded-full"></span>
+                    </div>
+
+                    <!-- Seller Info with Safety Badge -->
+                    <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl mb-4">
+                        <h4 class="font-semibold text-blue-800 dark:text-blue-300 text-sm mb-2">Seller Information</h4>
+                        <div class="flex items-center space-x-2">
+                            <span class="verified-badge text-white text-xs font-semibold px-2 py-1 rounded-full">
+                                Verified Student
+                            </span>
+                            <span class="text-sm text-blue-700 dark:text-blue-300">College verified seller</span>
+                        </div>
+                    </div>
+
+                    <p id="details-description" class="text-gray-700 dark:text-gray-300 mb-6 flex-grow">Book description goes here.</p>
+
+                    <!-- Safety Tips -->
+                    <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4 mb-4">
+                        <h4 class="font-semibold text-yellow-800 dark:text-yellow-300 text-sm mb-2">🛡️ Safety Tips</h4>
+                        <ul class="text-yellow-700 dark:text-yellow-300 text-xs space-y-1">
+                            <li>• Meet in college campus or public place</li>
+                            <li>• Verify book condition before payment</li>
+                            <li>• No advance payments - cash on delivery only</li>
+                        </ul>
+                    </div>
+
+                    <div id="details-contact-container" class="mb-4">
+                         <button id="details-contact-btn" class="w-full bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600 text-white text-base font-semibold py-3 px-5 rounded-full transition-all duration-300 transform hover:scale-105" data-contact="" data-translate-key="contactSellerBtn">
+                            Contact Seller Safely
+                        </button>
+                    </div>
+                    
+                    <div id="details-ai-buttons" class="space-y-2">
+                         <button id="details-buddy-btn" class="w-full text-sm text-center text-purple-700 dark:text-purple-300 font-medium bg-purple-100 dark:bg-purple-900/20 hover:bg-purple-200 dark:hover:bg-purple-900/30 py-2.5 px-4 rounded-full transition-all duration-300 flex items-center justify-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.4 1.4L3 12l5.8 1.9a2 2 0 0 1 1.4 1.4L12 21l1.9-5.8a2 2 0 0 1 1.4-1.4L21 12l-5.8-1.9a2 2 0 0 1-1.4-1.4Z"/></svg>
+                            <span data-translate-key="buddyBtn">Ask Book Buddy</span>
+                        </button>
+                        <button id="details-plan-btn" class="w-full text-sm text-center text-teal-700 dark:text-teal-300 font-medium bg-teal-100 dark:bg-teal-900/20 hover:bg-teal-200 dark:hover:bg-teal-900/30 py-2.5 px-4 rounded-full transition-all duration-300 flex items-center justify-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <span data-translate-key="planBtn">Create Study Plan</span>
+                        </button>
+                        <button id="details-summary-btn" class="w-full text-sm text-center text-blue-700 dark:text-blue-300 font-medium bg-blue-100 dark:bg-blue-900/20 hover:bg-blue-200 dark:hover:bg-blue-900/30 py-2.5 px-4 rounded-full transition-all duration-300 flex items-center justify-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                            <span data-translate-key="summaryBtn">Summarize This Book</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div id="report-modal" class="modal fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4 hidden pointer-events-none opacity-0">
+        <div class="modal-content bg-white dark:bg-gray-800 w-full max-w-md rounded-3xl shadow-2xl p-6 sm:p-8 transform -translate-y-10 scale-95">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-red-600 dark:text-red-400">Report Listing</h2>
+                <button id="close-report-modal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <form id="report-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">What's wrong with this listing?</label>
+                    <div class="space-y-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" name="report-reason" value="fake" class="rounded border-gray-300 dark:border-gray-600 text-red-600 dark:text-red-400 focus:ring-red-500 dark:focus:ring-red-400">
+                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Fake or incorrect book details</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="report-reason" value="suspicious" class="rounded border-gray-300 dark:border-gray-600 text-red-600 dark:text-red-400 focus:ring-red-500 dark:focus:ring-red-400">
+                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Suspicious contact information</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="report-reason" value="scam" class="rounded border-gray-300 dark:border-gray-600 text-red-600 dark:text-red-400 focus:ring-red-500 dark:focus:ring-red-400">
+                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Potential scam activity</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="report-reason" value="spam" class="rounded border-gray-300 dark:border-gray-600 text-red-600 dark:text-red-400 focus:ring-red-500 dark:focus:ring-red-400">
+                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Spam or irrelevant content</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="report-reason" value="other" class="rounded border-gray-300 dark:border-gray-600 text-red-600 dark:text-red-400 focus:ring-red-500 dark:focus:ring-red-400">
+                            <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Other issue</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="report-details" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Additional details (optional)</label>
+                    <textarea id="report-details" name="report-details" rows="3" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-xl focus:outline-none" placeholder="Please provide more information..."></textarea>
+                </div>
+                
+                <div class="pt-4">
+                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-full transition-all duration-300">
+                        Submit Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Book Buddy Modal -->
+    <div id="book-buddy-response-modal" class="modal fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4 hidden pointer-events-none opacity-0">
+        <div id="book-buddy-modal-content" class="modal-content bg-white dark:bg-gray-800 w-full max-w-xl rounded-3xl shadow-2xl p-6 sm:p-8 transform -translate-y-10 scale-95">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="book-buddy-modal-title" class="text-2xl font-bold text-gray-900 dark:text-white" data-translate-key="buddyModalTitle">Your Book Buddy Says...</h2>
+                <button id="close-book-buddy-modal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div id="book-buddy-response" class="text-gray-700 dark:text-gray-300 prose prose-indigo max-w-none">
+                <div class="flex justify-center items-center py-10">
+                    <div class="loader w-8 h-8 border-4 border-gray-200 dark:border-gray-600 rounded-full"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Box -->
+    <div id="message-box" class="fixed top-5 right-5 z-[70] p-4 rounded-xl shadow-2xl max-w-sm border-l-4">
+        <p id="message-text" class="font-medium"></p>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, onSnapshot, serverTimestamp, setLogLevel, where, getDocs, updateDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyA8tqe5Mw9_gcrALO12LhJf3LUb65gxTVU",
+          authDomain: "kitabkonnekt.firebaseapp.com",
+          projectId: "kitabkonnekt",
+          storageBucket: "kitabkonnekt.firebasestorage.app",
+          messagingSenderId: "566300666783",
+          appId: "1:566300666783:web:eb7a32a65f80ed27096baa",
+          measurementId: "G-FKB2K3XE53"
+        };
+        
+        // Gemini API Key
+        const GEMINI_API_KEY = "AIzaSyBGLqEEMh-nkTzQs12tOPrA8Gx420h4v2M";
+
+        // Global Variables
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : undefined;
+        let db, auth;
+        let userId = null;
+        let allBooks = [];
+        let currentReportedBook = null;
+        let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+        let isDarkMode = localStorage.getItem('darkMode') === 'true';
+        let currentUser = null;
+
+        // Anti-Scam Configuration
+        const SAFETY_CONFIG = {
+            maxPrice: 5000,
+            minPrice: 10,
+            suspiciousWords: ['free', 'urgent', 'lottery', 'winner', 'prize', 'offer', 'limited', 'discount', 'cash', 'payment', 'advance', 'immediately', 'quick', 'fast money'],
+            maxListingsPerUser: 10,
+            priceCheck: true,
+            contentFilter: true
+        };
+
+        // Translation
+        let currentLanguage = 'en';
+        const translations = {
+            'en': {
+                translateBtn: "Translate (Hinglish)",
+                donateBtn: "Donate Book",
+                sellBtn: "Sell Book",
+                loadingTip: "Loading daily study tip...",
+                heroTitle: "Old Books, New Life",
+                heroSubtitle: "Find affordable used books from verified students near you. Safe trading guaranteed.",
+                heroBtn: "Start Selling Safely",
+                searchPlaceholder: "Search by title, author, subject, or pincode...",
+                howItWorksTitle: "How It Works?",
+                step1Title: "1. Post Your Ad",
+                step1Desc: "Click \"Sell Book\" or \"Donate Book\" and post your details in 2 minutes.",
+                step2Title: "2. Browse & Search",
+                step2Desc: "Use the search bar to find the book, subject, or pincode you need.",
+                step3Title: "3. Connect Safely",
+                step3Desc: "Like a book? Meet in public places and verify before payment.",
+                listingsTitle: "Verified Listings",
+                noBooksTitle: "No books found",
+                noBooksDesc: "Be the first one to sell a book!",
+                viewDetails: "View Details &rarr;",
+                footerDesc: "A safe, student-focused marketplace to buy, sell, and donate used books. Your safety is our priority.",
+                footerRights: "&copy; 2024 KitabKonnekt. Safe trading platform for students.",
+                sellModalTitle: "Sell Your Book Safely",
+                coverPhotoLabel: "Book Cover Photo URL",
+                imgbbHint: "Upload photos to <a href=\"https://imgbb.com/\" target=\"_blank\" class=\"text-indigo-600 underline\">imgbb.com</a> and paste the link here.",
+                backCoverLabel: "Back Cover URL (Optional)",
+                indexPageLabel: "Index Page URL (Optional)",
+                titleLabel: "Book Title",
+                authorLabel: "Author",
+                generateDescBtn: "✨ Generate AI Description",
+                descLabel: "Book Description",
+                subjectLabel: "Subject / Category",
+                conditionLabel: "Condition",
+                conditionNew: "New-like",
+                conditionGood: "Good",
+                conditionAvg: "Average",
+                conditionReadable: "Readable (has notes)",
+                pincodeLabel: "Pincode",
+                priceLabel: "Selling Price (₹)",
+                suggestPriceBtn: "✨ Suggest",
+                contactLabel: "Your Contact Info (Phone or Email)",
+                postAdBtn: "Post Your Ad Safely",
+                donateModalTitle: "Donate Your Book",
+                photoLabelOptional: "Book Photo URL (Optional)",
+                postDonationBtn: "Post Your Donation",
+                byAuthorPrefix: "by",
+                contactSellerBtn: "Contact Seller Safely",
+                contactPrefix: "Contact",
+                buddyBtn: "Ask Book Buddy",
+                planBtn: "Create Study Plan",
+                summaryBtn: "Summarize This Book",
+                buddyModalTitle: "Your Book Buddy Says...",
+                studyPlanTitle: "Your 1-Week Study Plan",
+                summaryModalTitle: "Book Summary",
+                fillFormError: "Please fill in all required fields first.",
+                descError: "Could not generate description. Please try again.",
+                priceError: "Could not suggest price. Please try again.",
+                priceInfo: "Couldn't suggest a price, please enter manually.",
+                summaryError: "Could not generate summary. Please try again.",
+                postSuccess: "Your book has been listed successfully!",
+                postError: "Failed to list your book. Please try again.",
+                donationSuccess: "Donation listed! Thank you for your kindness.",
+                donationError: "Failed to list your donation. Please try again.",
+                configError: "Error: Website not configured. Please contact admin.",
+                configErrorDesc: "Could not load website.",
+                initError: "Failed to initialize app: ",
+                booksError: "Could not load books. Please refresh.",
+                authError: "You must be logged in to post.",
+                safetyAgreementError: "Please agree to the safety guidelines to continue.",
+                suspiciousContentError: "Your listing contains suspicious words. Please remove them for safety.",
+                priceLimitError: "Price must be between ₹10 and ₹5000 for safety reasons."
+            },
+            'hi': {
+                translateBtn: "Translate (English)",
+                donateBtn: "Kitaab Don karein",
+                sellBtn: "Kitaab Bechein",
+                loadingTip: "Aaj ki study tip load ho rahi hai...",
+                heroTitle: "Purani Kitabein, Nayi Zindagi",
+                heroSubtitle: "Apne aas-paas ke verified students se sasti purani kitabein dhoondein. Safe trading guaranteed.",
+                heroBtn: "Safely Bechna Shuru Karein",
+                searchPlaceholder: "Title, author, subject, ya pincode se dhoondein...",
+                howItWorksTitle: "Kaise Kaam Karta Hai?",
+                step1Title: "1. Apna Ad Post Karein",
+                step1Desc: "\"Kitaab Bechein\" ya \"Kitaab Don karein\" par click karein aur 2 minute mein details post karein.",
+                step2Title: "2. Browse karein aur Dhoondein",
+                step2Desc: "Search bar se apni zaroorat ki kitaab, subject, ya pincode dhoondein.",
+                step3Title: "3. Safely Connect Karein",
+                step3Desc: "Kitaab pasand aayi? Public places mein milen aur verify karke payment karein.",
+                listingsTitle: "Verified Listings",
+                noBooksTitle: "Koi kitaab nahi mili",
+                noBooksDesc: "Kitaab bechne waale pehle insaan banein!",
+                viewDetails: "Details Dekhein &rarr;",
+                footerDesc: "Students ke liye banaya gaya safe marketplace, purani kitabein khareedne, bechne, aur donate karne ke liye. Aapki safety hamari priority hai.",
+                footerRights: "&copy; 2024 KitabKonnekt. Students ke liye safe trading platform.",
+                sellModalTitle: "Apni Kitaab Safely Bechein",
+                coverPhotoLabel: "Kitaab ki Cover Photo URL",
+                imgbbHint: "Photos ko <a href=\"https://imgbb.com/\" target=\"_blank\" class=\"text-indigo-600 underline\">imgbb.com</a> par upload karein aur link yahaan paste karein.",
+                backCoverLabel: "Peeche ka Cover URL (Optional)",
+                indexPageLabel: "Index Page URL (Optional)",
+                titleLabel: "Kitaab ka Title",
+                authorLabel: "Lekhak (Author)",
+                generateDescBtn: "✨ AI Description Banayein",
+                descLabel: "Kitaab ka Vivran (Description)",
+                subjectLabel: "Subject / Category",
+                conditionLabel: "Haalat (Condition)",
+                conditionNew: "Nayi Jaisi",
+                conditionGood: "Achhi",
+                conditionAvg: "Theek-thaak",
+                conditionReadable: "Padhne Laayak (notes hain)",
+                pincodeLabel: "Pincode",
+                priceLabel: "Bechne ki Kimat (₹)",
+                suggestPriceBtn: "✨ Sujhaav dein",
+                contactLabel: "Aapka Contact Info (Phone ya Email)",
+                postAdBtn: "Apna Ad Safely Post Karein",
+                donateModalTitle: "Apni Kitaab Donate Karein",
+                photoLabelOptional: "Kitaab ka Photo URL (Optional)",
+                postDonationBtn: "Apna Donation Post Karein",
+                byAuthorPrefix: "Lekhak:",
+                contactSellerBtn: "Seller se Safely Contact Karein",
+                contactPrefix: "Contact",
+                buddyBtn: "Book Buddy se Poochein",
+                planBtn: "Study Plan Banayein",
+                summaryBtn: "Kitaab ka Saaraansh",
+                buddyModalTitle: "Aapka Book Buddy Kehta Hai...",
+                studyPlanTitle: "Aapka 1-Hafte ka Study Plan",
+                summaryModalTitle: "Kitaab ka Saaraansh",
+                fillFormError: "Kripya pehle sabhi zaroori jaankari bharein.",
+                descError: "Description nahi ban paaya. Kripya phir se try karein.",
+                priceError: "Kimat nahi sujha paaye. Kripya phir se try karein.",
+                priceInfo: "Kimat nahi sujha paaye, kripya khud daalein.",
+                summaryError: "Saaraansh nahi ban paaya. Kripya phir se try karein.",
+                postSuccess: "Aapki kitaab safaltapoorvak list ho gayi hai!",
+                postError: "Aapki kitaab list nahi ho paayi. Kripya phir se try karein.",
+                donationSuccess: "Donation list ho gaya! Aapki daya ke liye dhanyavaad.",
+                donationError: "Aapka donation list nahi ho paaya. Kripya phir se try karein.",
+                configError: "Error: Website not configured. Please contact admin.",
+                configErrorDesc: "Website load nahi ho saki.",
+                initError: "App chalu nahi ho paaya: ",
+                booksError: "Kitaabein load nahi ho saki. Kripya refresh karein.",
+                authError: "Post karne ke liye aapko logged in hona zaroori hai.",
+                safetyAgreementError: "Safety guidelines se agree karein bina aage nahi badh sakte.",
+                suspiciousContentError: "Aapki listing mein suspicious words hain. Safety ke liye unhe hata dein.",
+                priceLimitError: "Safety ke liye kimat ₹10 se ₹5000 ke beech honi chahiye."
+            }
+        };
+
+        // DOM Elements
+        const translateBtn = document.getElementById('translate-btn');
+        const heroSellBtn = document.getElementById('hero-sell-btn');
+        const sellBookModal = document.getElementById('sell-book-modal');
+        const closeSellModalBtn = document.getElementById('close-sell-modal');
+        const sellBookForm = document.getElementById('sell-book-form');
+        const bookGrid = document.getElementById('book-grid');
+        const loader = document.getElementById('loader');
+        const noBooksMessage = document.getElementById('no-books-message');
+        const searchBar = document.getElementById('search-bar');
+        const submitBookButton = document.getElementById('submit-book-button');
+        const submitText = document.getElementById('submit-text');
+        const submitLoader = document.getElementById('submit-loader');
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+        const openSellModalHeaderBtn = document.getElementById('open-sell-modal-header');
+        const donateBookModal = document.getElementById('donate-book-modal');
+        const openDonateModalHeaderBtn = document.getElementById('open-donate-modal-header');
+        const closeDonateModalBtn = document.getElementById('close-donate-modal');
+        const donateBookForm = document.getElementById('donate-book-form');
+        const submitDonateButton = document.getElementById('submit-donate-button');
+        const submitDonateText = document.getElementById('submit-donate-text');
+        const submitDonateLoader = document.getElementById('submit-donate-loader');
+        const bookDetailsModal = document.getElementById('book-details-modal');
+        const closeDetailsModalBtn = document.getElementById('close-details-modal');
+        const detailsMainImage = document.getElementById('details-main-image');
+        const detailsThumbnails = document.getElementById('details-thumbnails');
+        const detailsTitle = document.getElementById('details-title');
+        const detailsAuthor = document.getElementById('details-author');
+        const detailsPrice = document.getElementById('details-price');
+        const detailsSubject = document.getElementById('details-subject');
+        const detailsCondition = document.getElementById('details-condition');
+        const detailsPincode = document.getElementById('details-pincode');
+        const detailsDescription = document.getElementById('details-description');
+        const detailsContactContainer = document.getElementById('details-contact-container');
+        const detailsAiButtons = document.getElementById('details-ai-buttons');
+        const studyTipText = document.getElementById('study-tip-text');
+        const bookBuddyResponseModal = document.getElementById('book-buddy-response-modal');
+        const closeBookBuddyModalBtn = document.getElementById('close-book-buddy-modal');
+        const bookBuddyResponseDiv = document.getElementById('book-buddy-response');
+        const bookBuddyModalTitle = document.getElementById('book-buddy-modal-title');
+        const generateDescBtn = document.getElementById('generate-desc-btn');
+        const generateDescText = document.getElementById('generate-desc-text');
+        const generateDescLoader = document.getElementById('generate-desc-loader');
+        const bookDescriptionInput = document.getElementById('book-description');
+        const bookTitleInput = document.getElementById('book-title');
+        const bookAuthorInput = document.getElementById('book-author');
+        const generatePriceBtn = document.getElementById('generate-price-btn');
+        const generatePriceText = document.getElementById('generate-price-text');
+        const generatePriceLoader = document.getElementById('generate-price-loader');
+        const bookPriceInput = document.getElementById('book-price');
+        const bookConditionInput = document.getElementById('book-condition');
+        const safetyAgreement = document.getElementById('safety-agreement');
+        const reportBookBtn = document.getElementById('report-book-btn');
+        const emergencyReportBtn = document.getElementById('emergency-report-btn');
+        const reportModal = document.getElementById('report-modal');
+        const closeReportModalBtn = document.getElementById('close-report-modal');
+        const reportForm = document.getElementById('report-form');
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const darkModeIcon = document.getElementById('dark-mode-icon');
+        const lightModeIcon = document.getElementById('light-mode-icon');
+        const wishlistBtn = document.getElementById('wishlist-btn');
+        const wishlistCount = document.getElementById('wishlist-count');
+        const voiceSearchBtn = document.getElementById('voice-search-btn');
+        const quickFiltersBtn = document.getElementById('quick-filters-btn');
+        const quickFiltersDropdown = document.getElementById('quick-filters-dropdown');
+        const applyFiltersBtn = document.getElementById('apply-filters');
+        const clearFiltersBtn = document.getElementById('clear-filters');
+        const minPriceFilter = document.getElementById('min-price');
+        const maxPriceFilter = document.getElementById('max-price');
+        const conditionFilter = document.getElementById('condition-filter');
+        const sortFilter = document.getElementById('sort-filter');
+        const priceAlertsToggle = document.getElementById('price-alerts-toggle');
+        
+        // New DOM Elements for User Features
+        const userProfileSection = document.getElementById('user-profile-section');
+        const loginSection = document.getElementById('login-section');
+        const loginBtn = document.getElementById('login-btn');
+        const userAvatar = document.getElementById('user-avatar');
+        const userDropdown = document.getElementById('user-dropdown');
+        const dropdownAvatar = document.getElementById('dropdown-avatar');
+        const dropdownName = document.getElementById('dropdown-name');
+        const dropdownEmail = document.getElementById('dropdown-email');
+        const myListingsBtn = document.getElementById('my-listings-btn');
+        const myWishlistBtn = document.getElementById('my-wishlist-btn');
+        const profileSettingsBtn = document.getElementById('profile-settings-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        
+        const loginModal = document.getElementById('login-modal');
+        const closeLoginModalBtn = document.getElementById('close-login-modal');
+        const googleSigninBtn = document.getElementById('google-signin-btn');
+        const emailLoginForm = document.getElementById('email-login-form');
+        const rememberMeCheckbox = document.getElementById('remember-me');
+        const forgotPasswordBtn = document.getElementById('forgot-password-btn');
+        const switchToSignupBtn = document.getElementById('switch-to-signup');
+        
+        const signupModal = document.getElementById('signup-modal');
+        const closeSignupModalBtn = document.getElementById('close-signup-modal');
+        const googleSignupBtn = document.getElementById('google-signup-btn');
+        const emailSignupForm = document.getElementById('email-signup-form');
+        const switchToLoginBtn = document.getElementById('switch-to-login');
+        
+        const profileSettingsModal = document.getElementById('profile-settings-modal');
+        const closeProfileModalBtn = document.getElementById('close-profile-modal');
+        const profileSettingsForm = document.getElementById('profile-settings-form');
+        const profileAvatar = document.getElementById('profile-avatar');
+        const changeAvatarBtn = document.getElementById('change-avatar-btn');
+        
+        const myListingsModal = document.getElementById('my-listings-modal');
+        const closeListingsModalBtn = document.getElementById('close-listings-modal');
+        const myListingsContainer = document.getElementById('my-listings-container');
+        const startSellingFromListingsBtn = document.getElementById('start-selling-from-listings');
+        
+        const myWishlistModal = document.getElementById('my-wishlist-modal');
+        const closeWishlistModalBtn = document.getElementById('close-wishlist-modal');
+        const myWishlistContainer = document.getElementById('my-wishlist-container');
+
+        // Anti-Scam Functions
+        function detectSuspiciousContent(text) {
+            if (!SAFETY_CONFIG.contentFilter) return false;
+            
+            const lowerText = text.toLowerCase();
+            return SAFETY_CONFIG.suspiciousWords.some(word => 
+                lowerText.includes(word.toLowerCase())
+            );
+        }
+
+        function validatePrice(price) {
+            if (!SAFETY_CONFIG.priceCheck) return true;
+            
+            return price >= SAFETY_CONFIG.minPrice && price <= SAFETY_CONFIG.maxPrice;
+        }
+
+        function showSafetyTips() {
+            if (!localStorage.getItem('safetyTipsShown')) {
+                const safetyTips = `
+                    <div class="fixed inset-0 z-[80] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
+                        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-6 sm:p-8 max-w-md w-full">
+                            <div class="text-center mb-6">
+                                <div class="w-16 h-16 bg-green-100 dark:bg-green-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <span class="text-2xl">🛡️</span>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Welcome to Safe Trading!</h3>
+                                <p class="text-gray-600 dark:text-gray-300">Follow these guidelines for safe book trading</p>
+                            </div>
+                            
+                            <div class="space-y-3 mb-6">
+                                <div class="flex items-start space-x-3">
+                                    <span class="text-green-500 text-lg">✅</span>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 dark:text-white">Meet in Public</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">College campuses, libraries, coffee shops</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <span class="text-green-500 text-lg">✅</span>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 dark:text-white">No Advance Payments</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">Pay only after book inspection</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <span class="text-green-500 text-lg">✅</span>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 dark:text-white">Verify Identity</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">Call to confirm before meeting</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-3">
+                                    <span class="text-red-500 text-lg">❌</span>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 dark:text-white">Report Suspicious Activity</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">Use report button immediately</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button id="close-safety-tips" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-full transition-all duration-300">
+                                I Understand - Continue Safely
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', safetyTips);
+                
+                document.getElementById('close-safety-tips').addEventListener('click', function() {
+                    document.querySelector('.fixed.inset-0.z-\\[80\\]').remove();
+                    localStorage.setItem('safetyTipsShown', 'true');
+                });
+            }
+        }
+
+        // New Feature Functions
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            localStorage.setItem('darkMode', isDarkMode);
+            
+            if (isDarkMode) {
+                darkModeIcon.classList.add('hidden');
+                lightModeIcon.classList.remove('hidden');
+            } else {
+                darkModeIcon.classList.remove('hidden');
+                lightModeIcon.classList.add('hidden');
+            }
+        }
+
+        function updateWishlistCount() {
+            wishlistCount.textContent = wishlist.length;
+            if (wishlist.length > 0) {
+                wishlistCount.classList.remove('hidden');
+            } else {
+                wishlistCount.classList.add('hidden');
+            }
+        }
+
+        function toggleWishlist(bookId) {
+            const index = wishlist.indexOf(bookId);
+            if (index > -1) {
+                wishlist.splice(index, 1);
+                showMessage('Book removed from wishlist', 'info');
+            } else {
+                wishlist.push(bookId);
+                showMessage('Book added to wishlist!', 'success');
+            }
+            localStorage.setItem('wishlist', JSON.stringify(wishlist));
+            updateWishlistCount();
+            renderWishlist();
+        }
+
+        function isInWishlist(bookId) {
+            return wishlist.includes(bookId);
+        }
+
+        function startVoiceSearch() {
+            if (!('webkitSpeechRecognition' in window)) {
+                showMessage('Voice search not supported in your browser', 'error');
+                return;
+            }
+
+            const recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.start();
+            voiceSearchBtn.innerHTML = '<span>🎤 Listening...</span>';
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                searchBar.value = transcript;
+                handleSearch();
+                voiceSearchBtn.innerHTML = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg><span>Voice Search</span>';
+            };
+
+            recognition.onerror = function() {
+                voiceSearchBtn.innerHTML = '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg><span>Voice Search</span>';
+            };
+        }
+
+        function applyFilters() {
+            const minPrice = minPriceFilter.value ? parseInt(minPriceFilter.value) : 0;
+            const maxPrice = maxPriceFilter.value ? parseInt(maxPriceFilter.value) : Infinity;
+            const condition = conditionFilter.value;
+            const sortBy = sortFilter.value;
+
+            let filteredBooks = allBooks.filter(book => {
+                const bookPrice = book.price === "FREE" ? 0 : parseInt(book.price);
+                const priceMatch = bookPrice >= minPrice && bookPrice <= maxPrice;
+                const conditionMatch = !condition || book.condition === condition;
+                return priceMatch && conditionMatch;
+            });
+
+            // Apply sorting
+            switch (sortBy) {
+                case 'price-low':
+                    filteredBooks.sort((a, b) => {
+                        const priceA = a.price === "FREE" ? 0 : parseInt(a.price);
+                        const priceB = b.price === "FREE" ? 0 : parseInt(b.price);
+                        return priceA - priceB;
+                    });
+                    break;
+                case 'price-high':
+                    filteredBooks.sort((a, b) => {
+                        const priceA = a.price === "FREE" ? 0 : parseInt(a.price);
+                        const priceB = b.price === "FREE" ? 0 : parseInt(b.price);
+                        return priceB - priceA;
+                    });
+                    break;
+                case 'distance':
+                    // This would require geolocation API integration
+                    filteredBooks.sort((a, b) => a.pincode - b.pincode);
+                    break;
+                default: // newest
+                    filteredBooks.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
+            }
+
+            renderBooks(filteredBooks);
+            toggleModal(quickFiltersDropdown, false);
+        }
+
+        function clearFilters() {
+            minPriceFilter.value = '';
+            maxPriceFilter.value = '';
+            conditionFilter.value = '';
+            sortFilter.value = 'newest';
+            handleSearch();
+            toggleModal(quickFiltersDropdown, false);
+        }
+
+        function togglePriceAlerts() {
+            const isEnabled = priceAlertsToggle.classList.contains('bg-indigo-600');
+            if (isEnabled) {
+                priceAlertsToggle.classList.remove('bg-indigo-600', 'text-white');
+                priceAlertsToggle.classList.add('bg-gray-100', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                showMessage('Price alerts disabled', 'info');
+            } else {
+                priceAlertsToggle.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'text-gray-700', 'dark:text-gray-300');
+                priceAlertsToggle.classList.add('bg-indigo-600', 'text-white');
+                showMessage('Price alerts enabled! You will be notified of price drops', 'success');
+            }
+        }
+
+        // User Management Functions
+        function updateUserInterface(user) {
+            if (user) {
+                // User is signed in
+                loginSection.classList.add('hidden');
+                userProfileSection.classList.remove('hidden');
+                
+                // Update user avatar and info
+                const photoURL = user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.displayName || user.email) + '&background=4f46e5&color=ffffff';
+                userAvatar.src = photoURL;
+                dropdownAvatar.src = photoURL;
+                dropdownName.textContent = user.displayName || 'User';
+                dropdownEmail.textContent = user.email;
+                
+                // Load user profile data from Firestore if available
+                loadUserProfile(user.uid);
+            } else {
+                // User is signed out
+                userProfileSection.classList.add('hidden');
+                loginSection.classList.remove('hidden');
+            }
+        }
+
+        async function loadUserProfile(uid) {
+            try {
+                const userDocRef = doc(db, 'users', uid);
+                const userDoc = await getDoc(userDocRef);
+                
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    // Populate profile settings form with user data
+                    document.getElementById('profile-firstname').value = userData.firstName || '';
+                    document.getElementById('profile-lastname').value = userData.lastName || '';
+                    document.getElementById('profile-email').value = userData.email || '';
+                    document.getElementById('profile-phone').value = userData.phone || '';
+                    document.getElementById('profile-pincode').value = userData.pincode || '';
+                    document.getElementById('profile-college').value = userData.college || '';
+                }
+            } catch (error) {
+                console.error("Error loading user profile:", error);
+            }
+        }
+
+        async function saveUserProfile(uid, profileData) {
+            try {
+                const userDocRef = doc(db, 'users', uid);
+                await updateDoc(userDocRef, {
+                    ...profileData,
+                    updatedAt: serverTimestamp()
+                });
+                showMessage('Profile updated successfully!', 'success');
+            } catch (error) {
+                console.error("Error saving user profile:", error);
+                showMessage('Failed to update profile. Please try again.', 'error');
+            }
+        }
+
+        async function handleGoogleSignIn() {
+            const provider = new GoogleAuthProvider();
+            
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                
+                // Save user data to Firestore
+                const userDocRef = doc(db, 'users', user.uid);
+                const userDoc = await getDoc(userDocRef);
+                
+                if (!userDoc.exists()) {
+                    // First time user, create profile
+                    await updateDoc(userDocRef, {
+                        firstName: user.displayName?.split(' ')[0] || '',
+                        lastName: user.displayName?.split(' ').slice(1).join(' ') || '',
+                        email: user.email,
+                        photoURL: user.photoURL,
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp()
+                    });
+                }
+                
+                showMessage('Signed in successfully!', 'success');
+                toggleModal(loginModal, false);
+                toggleModal(signupModal, false);
+            } catch (error) {
+                console.error("Error signing in with Google:", error);
+                showMessage('Failed to sign in with Google. Please try again.', 'error');
+            }
+        }
+
+        async function handleEmailSignIn(email, password) {
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                showMessage('Signed in successfully!', 'success');
+                toggleModal(loginModal, false);
+                
+                // Handle "Remember me" functionality
+                if (rememberMeCheckbox.checked) {
+                    localStorage.setItem('rememberedUser', JSON.stringify({
+                        email: email,
+                        // Note: Never store passwords in localStorage
+                    }));
+                }
+            } catch (error) {
+                console.error("Error signing in with email:", error);
+                showMessage('Invalid email or password. Please try again.', 'error');
+            }
+        }
+
+        async function handleEmailSignUp(firstName, lastName, email, password) {
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                // Update user profile with name
+                await updateProfile(user, {
+                    displayName: `${firstName} ${lastName}`
+                });
+                
+                // Save user data to Firestore
+                const userDocRef = doc(db, 'users', user.uid);
+                await updateDoc(userDocRef, {
+                    firstName: firstName,
+                    lastName: lastName,
+                    email: email,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                });
+                
+                showMessage('Account created successfully!', 'success');
+                toggleModal(signupModal, false);
+            } catch (error) {
+                console.error("Error creating account:", error);
+                showMessage('Failed to create account. Please try again.', 'error');
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                await signOut(auth);
+                showMessage('Signed out successfully', 'info');
+                userDropdown.classList.add('hidden');
+            } catch (error) {
+                console.error("Error signing out:", error);
+                showMessage('Failed to sign out. Please try again.', 'error');
+            }
+        }
+
+        async function renderMyListings() {
+            if (!userId) return;
+            
+            try {
+                const listingsQuery = query(
+                    collection(db, 'books'),
+                    where('sellerId', '==', userId)
+                );
+                
+                const querySnapshot = await getDocs(listingsQuery);
+                const myListings = [];
+                
+                querySnapshot.forEach((doc) => {
+                    myListings.push({ id: doc.id, ...doc.data() });
+                });
+                
+                if (myListings.length === 0) {
+                    myListingsContainer.innerHTML = `
+                        <div class="text-center py-10 text-gray-500 dark:text-gray-400">
+                            <svg class="w-16 h-16 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                            </svg>
+                            <p>You haven't listed any books yet.</p>
+                            <button id="start-selling-from-listings" class="mt-4 text-indigo-600 dark:text-indigo-400 font-medium hover:underline">Start selling your first book</button>
+                        </div>
+                    `;
+                    
+                    document.getElementById('start-selling-from-listings').addEventListener('click', () => {
+                        toggleModal(myListingsModal, false);
+                        toggleModal(sellBookModal, true);
+                    });
+                } else {
+                    myListingsContainer.innerHTML = myListings.map(listing => `
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <img src="${listing.imageUrls && listing.imageUrls[0] ? listing.imageUrls[0] : 'https://placehold.co/100x120/e2e8f0/64748b?text=' + encodeURIComponent(listing.title)}" 
+                                     alt="${listing.title}" 
+                                     class="w-16 h-20 object-cover rounded-lg">
+                                <div>
+                                    <h3 class="font-semibold text-gray-800 dark:text-white">${listing.title}</h3>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">${listing.author}</p>
+                                    <p class="text-lg font-bold text-indigo-600 dark:text-indigo-400">${listing.price === "FREE" ? "FREE" : "₹" + listing.price}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="inline-block bg-${listing.condition === 'New-like' ? 'green' : listing.condition === 'Good' ? 'blue' : listing.condition === 'Average' ? 'yellow' : 'gray'}-100 dark:bg-${listing.condition === 'New-like' ? 'green' : listing.condition === 'Good' ? 'blue' : listing.condition === 'Average' ? 'yellow' : 'gray'}-800 text-${listing.condition === 'New-like' ? 'green' : listing.condition === 'Good' ? 'blue' : listing.condition === 'Average' ? 'yellow' : 'gray'}-800 dark:text-${listing.condition === 'New-like' ? 'green' : listing.condition === 'Good' ? 'blue' : listing.condition === 'Average' ? 'yellow' : 'gray'}-300 text-xs font-semibold px-2 py-1 rounded-full">
+                                    ${listing.condition}
+                                </span>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${listing.createdAt ? new Date(listing.createdAt.toDate()).toLocaleDateString() : 'Unknown date'}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error("Error loading my listings:", error);
+                myListingsContainer.innerHTML = '<p class="text-center text-red-500 py-10">Error loading your listings. Please try again.</p>';
+            }
+        }
+
+        function renderWishlist() {
+            const wishlistedBooks = allBooks.filter(book => wishlist.includes(book.id));
+            
+            if (wishlistedBooks.length === 0) {
+                myWishlistContainer.innerHTML = `
+                    <div class="col-span-2 text-center py-10 text-gray-500 dark:text-gray-400">
+                        <svg class="w-16 h-16 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        <p>Your wishlist is empty.</p>
+                        <p class="text-sm mt-2">Start adding books you're interested in!</p>
+                    </div>
+                `;
+            } else {
+                myWishlistContainer.innerHTML = wishlistedBooks.map(book => `
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden cursor-pointer" data-book-id="${book.id}">
+                        <img src="${book.imageUrls && book.imageUrls[0] ? book.imageUrls[0] : 'https://placehold.co/300x200/e2e8f0/64748b?text=' + encodeURIComponent(book.title)}" 
+                             alt="${book.title}" 
+                             class="w-full h-40 object-cover">
+                        <div class="p-4">
+                            <h3 class="font-semibold text-gray-800 dark:text-white truncate">${book.title}</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 truncate">${book.author}</p>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-lg font-bold text-indigo-600 dark:text-indigo-400">${book.price === "FREE" ? "FREE" : "₹" + book.price}</span>
+                                <button class="remove-from-wishlist text-red-500 hover:text-red-700" data-book-id="${book.id}">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                // Add event listeners for removing from wishlist
+                document.querySelectorAll('.remove-from-wishlist').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const bookId = btn.dataset.bookId;
+                        toggleWishlist(bookId);
+                    });
+                });
+                
+                // Add event listeners for viewing book details
+                document.querySelectorAll('#my-wishlist-container > div').forEach(card => {
+                    card.addEventListener('click', (e) => {
+                        if (!e.target.closest('.remove-from-wishlist')) {
+                            const bookId = card.dataset.bookId;
+                            const book = allBooks.find(b => b.id === bookId);
+                            if (book) {
+                                showBookDetails(book);
+                                toggleModal(myWishlistModal, false);
+                            }
+                        }
+                    });
+                });
+            }
+        }
+
+        // Utility Functions
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            const langData = translations[lang];
+            document.querySelectorAll('[data-translate-key]').forEach(el => {
+                const key = el.dataset.translateKey;
+                if (langData[key]) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                        el.placeholder = langData[key];
+                    } else if (el.tagName === 'OPTION') {
+                        el.textContent = langData[key];
+                    }
+                    else {
+                        el.innerHTML = langData[key];
+                    }
+                }
+            });
+            translateBtn.textContent = langData.translateBtn;
+        }
+
+        async function fetchWithBackoff(url, options, maxRetries = 3) {
+            let delay = 1000;
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    if (!GEMINI_API_KEY) {
+                         throw new Error("Gemini API key is missing.");
+                    }
+                    const finalUrl = `${url}?key=${GEMINI_API_KEY}`;
+                    const response = await fetch(finalUrl, options);
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error?.message || 'Unknown error'}`);
+                    }
+                    return await response.json();
+                } catch (error) {
+                    if (i === maxRetries - 1) {
+                        console.error("Final attempt failed:", error);
+                        throw error;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        function showMessage(message, type = 'success') {
+            const langData = translations[currentLanguage];
+            const displayMessage = langData[message] || message;
+            messageText.textContent = displayMessage;
+            if (type === 'success') {
+                messageBox.className = 'fixed top-5 right-5 z-[70] p-4 rounded-xl shadow-2xl max-w-sm border-l-4 border-green-500 bg-white dark:bg-gray-800 text-green-700 dark:text-green-300 show';
+            } else if (type === 'info') {
+                 messageBox.className = 'fixed top-5 right-5 z-[70] p-4 rounded-xl shadow-2xl max-w-sm border-l-4 border-blue-500 bg-white dark:bg-gray-800 text-blue-700 dark:text-blue-300 show';
+            } else {
+                messageBox.className = 'fixed top-5 right-5 z-[70] p-4 rounded-xl shadow-2xl max-w-sm border-l-4 border-red-500 bg-white dark:bg-gray-800 text-red-700 dark:text-red-300 show';
+            }
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 3000);
+        }
+
+        function toggleModal(modalElement, show) {
+            if (show) {
+                modalElement.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden'); 
+                setTimeout(() => {
+                    modalElement.classList.remove('opacity-0');
+                    modalElement.classList.add('pointer-events-auto');
+                    modalElement.querySelector('.modal-content').classList.remove('-translate-y-10', 'scale-95');
+                }, 10);
+            } else {
+                modalElement.classList.add('opacity-0');
+                modalElement.querySelector('.modal-content').classList.add('-translate-y-10', 'scale-95');
+                setTimeout(() => {
+                    modalElement.classList.add('hidden');
+                    modalElement.classList.remove('pointer-events-auto');
+                    if (!document.querySelector('.modal:not(.hidden)')) {
+                         document.body.classList.remove('overflow-hidden');
+                    }
+                }, 250);
+            }
+        }
+
+        function createBookCard(book, index) {
+            const defaultImage = `https://placehold.co/400x300/e2e8f0/64748b?text=${encodeURIComponent(book.title)}`;
+            let imageUrl = defaultImage;
+            if (book.imageUrls && book.imageUrls.length > 0) {
+                const firstValidUrl = book.imageUrls.find(url => url && url.trim() !== '');
+                if (firstValidUrl) {
+                    imageUrl = firstValidUrl;
+                }
+            }
+            
+            const isDonation = book.price === "FREE" || book.price === 0 || book.price === "0";
+            const priceHtml = isDonation ? 
+                `<p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">FREE</p>` :
+                `<p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">₹${book.price}</p>`;
+
+            const isWishlisted = isInWishlist(book.id);
+            const wishlistIcon = isWishlisted ? 
+                `<svg class="w-5 h-5 text-red-500 fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/></svg>` :
+                `<svg class="w-5 h-5 text-gray-400 hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>`;
+
+            // Safety badges
+            const safetyBadges = `
+                <div class="flex items-center space-x-2 mt-2">
+                    <span class="verified-badge text-white text-xs font-semibold px-2 py-1 rounded-full flex items-center">
+                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                        Verified
+                    </span>
+                    ${validatePrice(book.price) ? '<span class="bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-300 text-xs font-semibold px-2 py-1 rounded-full">Fair Price</span>' : ''}
+                </div>
+            `;
+
+            return `
+                <div class="book-card group bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden flex flex-col transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer animate-fade-in-up" 
+                     data-book-id="${book.id}" 
+                     style="animation-delay: ${index * 50}ms; opacity: 0;">
+                    <div class="overflow-hidden relative">
+                        <img src="${imageUrl}" alt="${book.title}" class="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105 book-image" onerror="this.onerror=null;this.src='${defaultImage}';">
+                        <div class="absolute top-3 right-3 flex space-x-2">
+                            <button class="wishlist-btn p-2 bg-white/90 dark:bg-gray-800/90 rounded-full shadow-lg transition-all hover:scale-110" data-book-id="${book.id}">
+                                ${wishlistIcon}
+                            </button>
+                            <span class="verified-badge text-white text-xs font-semibold px-2 py-1 rounded-full flex items-center">
+                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                                </svg>
+                                Safe
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="p-5 flex flex-col flex-grow">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-1 truncate" title="${book.title}">${book.title}</h3>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mb-3 truncate" title="${book.author}">${translations[currentLanguage].byAuthorPrefix} ${book.author}</p>
+                        
+                        <div class="flex-grow space-x-1.5 mb-4">
+                            <span class="inline-block bg-indigo-100 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-300 text-xs font-semibold px-3 py-1 rounded-full">${book.subject}</span>
+                            <span class="inline-block bg-amber-100 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 text-xs font-semibold px-3 py-1 rounded-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 inline-block -mt-0.5 mr-0.5">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                ${book.pincode}
+                            </span>
+                        </div>
+                        
+                        ${safetyBadges}
+                        
+                        <div class="flex justify-between items-center mt-auto pt-4 border-t border-gray-100 dark:border-gray-700">
+                            ${priceHtml}
+                            <span class="text-sm font-medium text-indigo-600 dark:text-indigo-400 group-hover:underline" data-translate-key="viewDetails">View Details &rarr;</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderBooks(books) {
+            loader.style.display = 'none';
+            if (books.length === 0) {
+                noBooksMessage.style.display = 'block';
+                bookGrid.innerHTML = '';
+            } else {
+                noBooksMessage.style.display = 'none';
+                bookGrid.innerHTML = books.map((book, index) => createBookCard(book, index)).join('');
+                
+                // Add wishlist event listeners
+                document.querySelectorAll('.wishlist-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const bookId = btn.dataset.bookId;
+                        toggleWishlist(bookId);
+                        
+                        // Update icon
+                        if (isInWishlist(bookId)) {
+                            btn.innerHTML = `<svg class="w-5 h-5 text-red-500 fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/></svg>`;
+                        } else {
+                            btn.innerHTML = `<svg class="w-5 h-5 text-gray-400 hover:text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>`;
+                        }
+                    });
+                });
+            }
+            setLanguage(currentLanguage);
+        }
+
+        // Event Handlers
+        async function handlePostBook(e) {
+            e.preventDefault();
+            if (!auth.currentUser) {
+                showMessage('authError', 'error');
+                return;
+            }
+
+            // Safety checks
+            if (!safetyAgreement.checked) {
+                showMessage('safetyAgreementError', 'error');
+                return;
+            }
+
+            const title = bookTitleInput.value;
+            const description = bookDescriptionInput.value;
+            const price = Number(bookPriceInput.value);
+
+            // Content safety check
+            if (detectSuspiciousContent(title + ' ' + description)) {
+                showMessage('suspiciousContentError', 'error');
+                return;
+            }
+
+            // Price safety check
+            if (!validatePrice(price)) {
+                showMessage('priceLimitError', 'error');
+                return;
+            }
+
+            submitText.classList.add('hidden');
+            submitLoader.classList.remove('hidden');
+            submitBookButton.disabled = true;
+
+            const formData = new FormData(sellBookForm);
+            const imageUrls = [
+                formData.get('book-image-url-1') || '',
+                formData.get('book-image-url-2') || '',
+                formData.get('book-image-url-3') || '',
+            ].filter(url => url.trim() !== '');
+
+            const newBook = {
+                title: title,
+                author: formData.get('book-author'),
+                description: description,
+                subject: formData.get('book-subject'),
+                condition: formData.get('book-condition'),
+                pincode: formData.get('book-pincode'),
+                price: price,
+                imageUrls: imageUrls,
+                contactInfo: formData.get('contact-info'),
+                sellerId: userId,
+                sellerName: currentUser?.displayName || 'Anonymous',
+                sellerEmail: currentUser?.email || '',
+                verified: true, // Mark as verified for safety
+                createdAt: serverTimestamp()
+            };
+
+            try {
+                const bookCollectionPath = 'books';
+                await addDoc(collection(db, bookCollectionPath), newBook);
+                showMessage('postSuccess', 'success');
+                sellBookForm.reset();
+                toggleModal(sellBookModal, false);
+            } catch (error) {
+                console.error("Error adding document: ", error);
+                showMessage('postError', 'error');
+            } finally {
+                submitText.classList.remove('hidden');
+                submitLoader.classList.add('hidden');
+                submitBookButton.disabled = false;
+            }
+        }
+
+        async function handlePostDonation(e) {
+            e.preventDefault();
+            if (!auth.currentUser) {
+                showMessage('authError', 'error');
+                return;
+            }
+
+            submitDonateText.classList.add('hidden');
+            submitDonateLoader.classList.remove('hidden');
+            submitDonateButton.disabled = true;
+
+            const formData = new FormData(donateBookForm);
+            const imageUrls = [
+                formData.get('donate-book-image-url') || '',
+            ].filter(url => url.trim() !== '');
+
+            const newDonation = {
+                title: formData.get('donate-book-title'),
+                author: "Donation",
+                description: "This book is available for free.",
+                subject: formData.get('donate-book-subject'),
+                condition: "Readable",
+                pincode: formData.get('donate-book-pincode'),
+                price: "FREE",
+                imageUrls: imageUrls,
+                contactInfo: formData.get('donate-contact-info'),
+                sellerId: userId,
+                sellerName: currentUser?.displayName || 'Anonymous',
+                sellerEmail: currentUser?.email || '',
+                verified: true,
+                createdAt: serverTimestamp()
+            };
+
+            try {
+                const bookCollectionPath = 'books';
+                await addDoc(collection(db, bookCollectionPath), newDonation);
+                showMessage('donationSuccess', 'info');
+                donateBookForm.reset();
+                toggleModal(donateBookModal, false);
+            } catch (error) {
+                console.error("Error adding document: ", error);
+                showMessage('donationError', 'error');
+            } finally {
+                submitDonateText.classList.remove('hidden');
+                submitDonateLoader.classList.add('hidden');
+                submitDonateButton.disabled = false;
+            }
+        }
+
+        function handleSearch() {
+            const searchTerm = searchBar.value.toLowerCase();
+            const filteredBooks = allBooks.filter(book => 
+                book.title.toLowerCase().includes(searchTerm) ||
+                book.author.toLowerCase().includes(searchTerm) ||
+                book.subject.toLowerCase().includes(searchTerm) ||
+                (book.description && book.description.toLowerCase().includes(searchTerm)) ||
+                (book.pincode && book.pincode.includes(searchTerm))
+            );
+            renderBooks(filteredBooks);
+        }
+
+        function showBookDetails(book) {
+            currentReportedBook = book;
+
+            detailsTitle.textContent = book.title;
+            detailsAuthor.textContent = `${translations[currentLanguage].byAuthorPrefix} ${book.author}`;
+            detailsDescription.textContent = book.description || 'No description provided.';
+            
+            const isDonation = book.price === "FREE" || book.price === 0 || book.price === "0";
+            if (isDonation) {
+                detailsPrice.innerHTML = `<span class="text-emerald-600 dark:text-emerald-400">FREE</span>`;
+            } else {
+                detailsPrice.innerHTML = `<span class="text-indigo-600 dark:text-indigo-400">₹${book.price}</span>`;
+            }
+            
+            detailsSubject.textContent = book.subject;
+            detailsCondition.textContent = book.condition || 'Good';
+            detailsPincode.textContent = book.pincode;
+
+            detailsContactContainer.innerHTML = `<button id="details-contact-btn" class="w-full bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600 text-white text-base font-semibold py-3 px-5 rounded-full transition-all duration-300 transform hover:scale-105" data-contact="${book.contactInfo}">${translations[currentLanguage].contactSellerBtn}</button>`;
+            
+            const buddyBtn = detailsAiButtons.querySelector('#details-buddy-btn');
+            const planBtn = detailsAiButtons.querySelector('#details-plan-btn');
+            const summaryBtn = detailsAiButtons.querySelector('#details-summary-btn');
+            
+            buddyBtn.dataset.bookTitle = book.title;
+            buddyBtn.dataset.bookAuthor = book.author;
+            buddyBtn.dataset.bookSubject = book.subject;
+            
+            planBtn.dataset.bookTitle = book.title;
+            planBtn.dataset.bookSubject = book.subject;
+
+            summaryBtn.dataset.bookTitle = book.title;
+            summaryBtn.dataset.bookAuthor = book.author;
+
+            const defaultImage = `https://placehold.co/400x300/e2e8f0/64748b?text=${encodeURIComponent(book.title)}`;
+            const validImages = (book.imageUrls || []).filter(url => url && url.trim() !== '');
+            
+            detailsThumbnails.innerHTML = '';
+            
+            if (validImages.length === 0) {
+                detailsMainImage.src = defaultImage;
+            } else {
+                detailsMainImage.src = validImages[0];
+                validImages.forEach((url, index) => {
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.alt = `Thumbnail ${index + 1}`;
+                    img.className = `thumbnail w-16 h-16 object-cover rounded-lg border-2 border-transparent cursor-pointer transition-all ${index === 0 ? 'active' : ''}`;
+                    img.dataset.src = url;
+                    img.onerror = function() { this.src = defaultImage; };
+                    detailsThumbnails.appendChild(img);
+                });
+            }
+
+            toggleModal(bookDetailsModal, true);
+        }
+
+        function handleShowBookDetails(e) {
+            const card = e.target.closest('.book-card');
+            if (!card) return;
+            const bookId = card.dataset.bookId;
+            const book = allBooks.find(b => b.id === bookId);
+            if (!book) return;
+
+            showBookDetails(book);
+        }
+
+        function handleDetailsModalClick(e) {
+            const thumbnail = e.target.closest('.thumbnail');
+            if (thumbnail) {
+                detailsMainImage.src = thumbnail.dataset.src;
+                detailsThumbnails.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+                thumbnail.classList.add('active');
+                return;
+            }
+
+            const contactButton = e.target.closest('#details-contact-btn');
+            if (contactButton) {
+                const contactInfo = contactButton.dataset.contact;
+                detailsContactContainer.innerHTML = `<p class="text-base font-semibold text-gray-800 dark:text-gray-200 text-center py-2 bg-gray-100 dark:bg-gray-700 rounded-full">${translations[currentLanguage].contactPrefix}: ${contactInfo}</p>`;
+                return;
+            }
+
+            const reportButton = e.target.closest('#report-book-btn');
+            if (reportButton) {
+                toggleModal(reportModal, true);
+                return;
+            }
+
+            const buddyButton = e.target.closest('#details-buddy-btn');
+            if (buddyButton) {
+                handleAskBookBuddy(buddyButton);
+                return;
+            }
+
+            const planButton = e.target.closest('#details-plan-btn');
+            if (planButton) {
+                handleCreateStudyPlan(planButton);
+                return;
+            }
+
+            const summaryButton = e.target.closest('#details-summary-btn');
+            if (summaryButton) {
+                handleSummarizeBook(summaryButton);
+                return;
+            }
+        }
+
+        function handleReportListing() {
+            if (!currentReportedBook) return;
+            
+            reportForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(reportForm);
+                const reasons = Array.from(formData.getAll('report-reason'));
+                const details = formData.get('report-details');
+                
+                // Here you would typically send this to your backend
+                console.log('Report submitted:', {
+                    book: currentReportedBook.title,
+                    reasons: reasons,
+                    details: details,
+                    reporterId: userId
+                });
+                
+                showMessage('Thank you for reporting. We will review this listing immediately.', 'info');
+                toggleModal(reportModal, false);
+                reportForm.reset();
+            });
+        }
+
+        async function handleAskBookBuddy(buttonElement) {
+            const bookTitle = buttonElement.dataset.bookTitle;
+            const bookAuthor = buttonElement.dataset.bookAuthor;
+            const bookSubject = buttonElement.dataset.bookSubject;
+
+            bookBuddyModalTitle.textContent = translations[currentLanguage].buddyModalTitle;
+            toggleModal(bookBuddyResponseModal, true);
+            bookBuddyResponseDiv.innerHTML = `
+                <div class="flex justify-center items-center py-10">
+                    <div class="loader w-8 h-8 border-4 border-gray-200 dark:border-gray-600 rounded-full"></div>
+                </div>
+                <p class="text-center text-gray-500 dark:text-gray-400 mt-4">Book Buddy is thinking...</p>
+            `;
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent`;
+            const userPrompt = `Tell me something interesting about the book "${bookTitle}" by ${bookAuthor} (Subject: ${bookSubject}), or suggest 2-3 similar books, or give a fun fact related to its subject. Keep it concise and engaging. Format as simple paragraphs.`;
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }]
+            };
+
+            try {
+                const result = await fetchWithBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) {
+                    bookBuddyResponseDiv.innerHTML = `<p class="whitespace-pre-wrap">${text}</p>`;
+                } else {
+                    throw new Error("Invalid response from API.");
+                }
+            } catch (error) {
+                console.error("Error asking Book Buddy:", error);
+                bookBuddyResponseDiv.innerHTML = `<p class="text-red-500">Sorry, Book Buddy is feeling shy right now. Please try again later!</p>`;
+            }
+        }
+
+        async function handleCreateStudyPlan(buttonElement) {
+            const bookTitle = buttonElement.dataset.bookTitle;
+            const bookSubject = buttonElement.dataset.bookSubject;
+
+            bookBuddyModalTitle.textContent = translations[currentLanguage].studyPlanTitle;
+            toggleModal(bookBuddyResponseModal, true);
+            bookBuddyResponseDiv.innerHTML = `
+                <div class="flex justify-center items-center py-10">
+                    <div class="loader w-8 h-8 border-4 border-gray-200 dark:border-gray-600 rounded-full"></div>
+                </div>
+                <p class="text-center text-gray-500 dark:text-gray-400 mt-4">Generating your study plan...</p>
+            `;
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent`;
+            const userPrompt = `Create a simple, 1-week study plan for the subject "${bookSubject}", assuming the student is using the book "${bookTitle}". Keep it high-level with 5-7 bullet points. Start with a brief encouraging line and format it with simple bullet points. Use markdown for lists.`;
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }]
+            };
+
+            try {
+                const result = await fetchWithBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) {
+                    const formattedText = text
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\* (.*?)(?=\n\* |\n\n|$)/g, '<li class="ml-5 list-disc">$1</li>');
+                    bookBuddyResponseDiv.innerHTML = `<div class="space-y-2">${formattedText.replace(/\n\n/g, '<br>')}</div>`;
+                } else {
+                    throw new Error("Invalid response from API.");
+                }
+            } catch (error) {
+                console.error("Error creating study plan:", error);
+                bookBuddyResponseDiv.innerHTML = `<p class="text-red-500">Sorry, could not generate a study plan right now. Please try again later!</p>`;
+            }
+        }
+
+        async function handleSummarizeBook(buttonElement) {
+            const bookTitle = buttonElement.dataset.bookTitle;
+            const bookAuthor = buttonElement.dataset.bookAuthor;
+
+            bookBuddyModalTitle.textContent = translations[currentLanguage].summaryModalTitle;
+            toggleModal(bookBuddyResponseModal, true);
+            bookBuddyResponseDiv.innerHTML = `
+                <div class="flex justify-center items-center py-10">
+                    <div class="loader w-8 h-8 border-4 border-gray-200 dark:border-gray-600 rounded-full"></div>
+                </div>
+                <p class="text-center text-gray-500 dark:text-gray-400 mt-4">Generating summary...</p>
+            `;
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent`;
+            const userPrompt = `Provide a short, one-paragraph summary of the book "${bookTitle}" by "${bookAuthor}". What is it about? Keep it concise and easy to understand for a student.`;
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }]
+            };
+
+            try {
+                const result = await fetchWithBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) {
+                    bookBuddyResponseDiv.innerHTML = `<p class="whitespace-pre-wrap">${text}</p>`;
+                } else {
+                    throw new Error("Invalid response from API.");
+                }
+            } catch (error) {
+                console.error("Error summarizing book:", error);
+                showMessage("summaryError", "error");
+                bookBuddyResponseDiv.innerHTML = `<p class="text-red-500">Sorry, could not generate a summary right now. Please try again later!</p>`;
+            }
+        }
+
+        async function fetchStudyTip() {
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent`;
+            const userPrompt = "Give me one concise, actionable, and encouraging study tip for students. Keep it to one sentence.";
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }]
+            };
+
+            try {
+                const result = await fetchWithBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const tip = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (tip) {
+                    studyTipText.textContent = tip;
+                } else {
+                    throw new Error("No tip generated.");
+                }
+            } catch (error) {
+                console.error("Error fetching study tip:", error);
+                studyTipText.textContent = 'Pro Tip: Always meet in public places for book trading!';
+            }
+        }
+
+        async function handleGenerateDescription(e) {
+            e.preventDefault();
+            const title = bookTitleInput.value;
+            const author = bookAuthorInput.value;
+
+            if (!title || !author) {
+                showMessage("fillFormError", "error");
+                return;
+            }
+
+            generateDescText.classList.add('hidden');
+            generateDescLoader.classList.remove('hidden');
+            generateDescBtn.disabled = true;
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent`;
+            const userPrompt = `Write a short, engaging 2-sentence description for the book "${title}" by "${author}". This is for a student marketplace to sell the book.`;
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }]
+            };
+
+            try {
+                const result = await fetchWithBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) {
+                    bookDescriptionInput.value = text.replace(/"/g, '');
+                } else {
+                    throw new Error("No description generated.");
+                }
+            } catch (error) {
+                console.error("Error generating description:", error);
+                showMessage("descError", "error");
+            } finally {
+                generateDescText.classList.remove('hidden');
+                generateDescLoader.classList.add('hidden');
+                generateDescBtn.disabled = false;
+            }
+        }
+
+        async function handleGeneratePrice(e) {
+            e.preventDefault();
+            const title = bookTitleInput.value;
+            const author = bookAuthorInput.value;
+            const condition = bookConditionInput.value;
+
+            if (!title || !author || !condition) {
+                showMessage("fillFormError", "error");
+                return;
+            }
+
+            generatePriceText.classList.add('hidden');
+            generatePriceLoader.classList.remove('hidden');
+            generatePriceBtn.disabled = true;
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent`;
+            const userPrompt = `A student is selling a used book: "${title}" by "${author}", in "${condition}" condition. Suggest a fair selling price in Indian Rupees (₹). Give me ONLY the numerical value, no "Rs." or any other text. For example: 150`;
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }]
+            };
+
+            try {
+                const result = await fetchWithBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) {
+                    const price = text.match(/\d+/);
+                    if (price && price[0]) {
+                        const suggestedPrice = parseInt(price[0]);
+                        if (validatePrice(suggestedPrice)) {
+                            bookPriceInput.value = suggestedPrice;
+                        } else {
+                            showMessage("priceInfo", "info");
+                        }
+                    } else {
+                        showMessage("priceInfo", "info");
+                    }
+                } else {
+                    throw new Error("No price generated.");
+                }
+            } catch (error) {
+                console.error("Error generating price:", error);
+                showMessage("priceError", "error");
+            } finally {
+                generatePriceText.classList.remove('hidden');
+                generatePriceLoader.classList.add('hidden');
+                generatePriceBtn.disabled = false;
+            }
+        }
+
+        // Main App Initialization
+        async function initApp() {
+            setLogLevel('debug');
+
+            function fetchBooks() {
+                if (!db) {
+                    console.log("fetchBooks called, but db is not ready.");
+                    return;
+                }
+                console.log("Fetching books...");
+                const bookCollectionPath = 'books';
+                const q = query(collection(db, bookCollectionPath));
+                
+                onSnapshot(q, (querySnapshot) => {
+                    allBooks = [];
+                    querySnapshot.forEach((doc) => {
+                        allBooks.push({ id: doc.id, ...doc.data() });
+                    });
+                    
+                    allBooks.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
+                    handleSearch();
+                }, (error) => {
+                    console.error("Error fetching books: ", error);
+                    loader.style.display = 'none';
+                    showMessage('booksError', 'error');
+                });
+            }
+            
+            try {
+                console.log("Initializing Firebase with config:", firebaseConfig);
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        console.log('User is signed in:', user.uid);
+                        userId = user.uid;
+                        currentUser = user;
+                        updateUserInterface(user);
+                        fetchBooks();
+                    } else {
+                        console.log('User is signed out.');
+                        userId = null;
+                        currentUser = null;
+                        updateUserInterface(null);
+                        if (initialAuthToken) {
+                             console.log('Signing in with custom token...');
+                             signInWithCustomToken(auth, initialAuthToken).catch((err) => {
+                                 console.error("Custom token sign-in error:", err);
+                                 console.log('Signing in anonymously as fallback...');
+                                 signInAnonymously(auth).catch(console.error);
+                             });
+                         } else {
+                             console.log('Signing in anonymously...');
+                             signInAnonymously(auth).catch(console.error);
+                         }
+                    }
+                });
+
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                fetchStudyTip();
+                
+                // Show safety tips on first visit
+                setTimeout(showSafetyTips, 1000);
+                
+            } catch (error) {
+                console.error('Firebase initialization error:', error);
+                loader.style.display = 'none';
+                showMessage(`${translations[currentLanguage].initError} ${error.message}`, 'error');
+            }
+            
+            // Initialize new features
+            updateWishlistCount();
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            if (isDarkMode) {
+                darkModeIcon.classList.add('hidden');
+                lightModeIcon.classList.remove('hidden');
+            }
+            
+            setLanguage('en');
+        }
+        
+        // Event Listeners
+        translateBtn.addEventListener('click', () => {
+            const newLang = (currentLanguage === 'en') ? 'hi' : 'en';
+            setLanguage(newLang);
+        });
+
+        heroSellBtn.addEventListener('click', () => toggleModal(sellBookModal, true));
+        openSellModalHeaderBtn.addEventListener('click', () => toggleModal(sellBookModal, true));
+        closeSellModalBtn.addEventListener('click', () => toggleModal(sellBookModal, false));
+        sellBookModal.addEventListener('click', (e) => {
+            if (e.target === sellBookModal) {
+                toggleModal(sellBookModal, false);
+            }
+        });
+        sellBookForm.addEventListener('submit', handlePostBook);
+
+        openDonateModalHeaderBtn.addEventListener('click', () => toggleModal(donateBookModal, true));
+        closeDonateModalBtn.addEventListener('click', () => toggleModal(donateBookModal, false));
+        donateBookModal.addEventListener('click', (e) => {
+            if (e.target === donateBookModal) {
+                toggleModal(donateBookModal, false);
+            }
+        });
+        donateBookForm.addEventListener('submit', handlePostDonation);
+        
+        generateDescBtn.addEventListener('click', handleGenerateDescription);
+        generatePriceBtn.addEventListener('click', handleGeneratePrice);
+
+        searchBar.addEventListener('input', handleSearch);
+        bookGrid.addEventListener('click', handleShowBookDetails);
+        bookDetailsModal.addEventListener('click', handleDetailsModalClick);
+        
+        closeDetailsModalBtn.addEventListener('click', () => toggleModal(bookDetailsModal, false));
+        bookDetailsModal.addEventListener('click', (e) => {
+            if (e.target === bookDetailsModal) {
+                toggleModal(bookDetailsModal, false);
+            }
+        });
+        
+        closeBookBuddyModalBtn.addEventListener('click', () => toggleModal(bookBuddyResponseModal, false));
+        bookBuddyResponseModal.addEventListener('click', (e) => {
+            if (e.target === bookBuddyResponseModal) {
+                toggleModal(bookBuddyResponseModal, false);
+            }
+        });
+
+        // Report functionality
+        emergencyReportBtn.addEventListener('click', () => toggleModal(reportModal, true));
+        closeReportModalBtn.addEventListener('click', () => toggleModal(reportModal, false));
+        reportModal.addEventListener('click', (e) => {
+            if (e.target === reportModal) {
+                toggleModal(reportModal, false);
+            }
+        });
+        handleReportListing();
+
+        // New Feature Event Listeners
+        darkModeToggle.addEventListener('click', toggleDarkMode);
+        wishlistBtn.addEventListener('click', () => {
+            if (currentUser) {
+                toggleModal(myWishlistModal, true);
+                renderWishlist();
+            } else {
+                showMessage('Please sign in to view your wishlist', 'info');
+            }
+        });
+        voiceSearchBtn.addEventListener('click', startVoiceSearch);
+        
+        quickFiltersBtn.addEventListener('click', () => {
+            const isVisible = !quickFiltersDropdown.classList.contains('hidden');
+            toggleModal(quickFiltersDropdown, !isVisible);
+        });
+        
+        applyFiltersBtn.addEventListener('click', applyFilters);
+        clearFiltersBtn.addEventListener('click', clearFilters);
+        priceAlertsToggle.addEventListener('click', togglePriceAlerts);
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!quickFiltersBtn.contains(e.target) && !quickFiltersDropdown.contains(e.target)) {
+                quickFiltersDropdown.classList.add('hidden');
+            }
+        });
+        
+        // User Management Event Listeners
+        loginBtn.addEventListener('click', () => toggleModal(loginModal, true));
+        closeLoginModalBtn.addEventListener('click', () => toggleModal(loginModal, false));
+        loginModal.addEventListener('click', (e) => {
+            if (e.target === loginModal) {
+                toggleModal(loginModal, false);
+            }
+        });
+        
+        closeSignupModalBtn.addEventListener('click', () => toggleModal(signupModal, false));
+        signupModal.addEventListener('click', (e) => {
+            if (e.target === signupModal) {
+                toggleModal(signupModal, false);
+            }
+        });
+        
+        googleSigninBtn.addEventListener('click', handleGoogleSignIn);
+        googleSignupBtn.addEventListener('click', handleGoogleSignIn);
+        
+        emailLoginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            handleEmailSignIn(email, password);
+        });
+        
+        emailSignupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const firstName = document.getElementById('signup-firstname').value;
+            const lastName = document.getElementById('signup-lastname').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-confirm-password').value;
+            
+            if (password !== confirmPassword) {
+                showMessage('Passwords do not match', 'error');
+                return;
+            }
+            
+            handleEmailSignUp(firstName, lastName, email, password);
+        });
+        
+        switchToSignupBtn.addEventListener('click', () => {
+            toggleModal(loginModal, false);
+            toggleModal(signupModal, true);
+        });
+        
+        switchToLoginBtn.addEventListener('click', () => {
+            toggleModal(signupModal, false);
+            toggleModal(loginModal, true);
+        });
+        
+        userAvatar.addEventListener('click', () => {
+            userDropdown.classList.toggle('hidden');
+        });
+        
+        myListingsBtn.addEventListener('click', () => {
+            toggleModal(myListingsModal, true);
+            renderMyListings();
+            userDropdown.classList.add('hidden');
+        });
+        
+        myWishlistBtn.addEventListener('click', () => {
+            toggleModal(myWishlistModal, true);
+            renderWishlist();
+            userDropdown.classList.add('hidden');
+        });
+        
+        profileSettingsBtn.addEventListener('click', () => {
+            toggleModal(profileSettingsModal, true);
+            userDropdown.classList.add('hidden');
+        });
+        
+        logoutBtn.addEventListener('click', handleLogout);
+        
+        closeProfileModalBtn.addEventListener('click', () => toggleModal(profileSettingsModal, false));
+        profileSettingsModal.addEventListener('click', (e) => {
+            if (e.target === profileSettingsModal) {
+                toggleModal(profileSettingsModal, false);
+            }
+        });
+        
+        profileSettingsForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!userId) return;
+            
+            const profileData = {
+                firstName: document.getElementById('profile-firstname').value,
+                lastName: document.getElementById('profile-lastname').value,
+                email: document.getElementById('profile-email').value,
+                phone: document.getElementById('profile-phone').value,
+                pincode: document.getElementById('profile-pincode').value,
+                college: document.getElementById('profile-college').value
+            };
+            
+            saveUserProfile(userId, profileData);
+        });
+        
+        closeListingsModalBtn.addEventListener('click', () => toggleModal(myListingsModal, false));
+        myListingsModal.addEventListener('click', (e) => {
+            if (e.target === myListingsModal) {
+                toggleModal(myListingsModal, false);
+            }
+        });
+        
+        closeWishlistModalBtn.addEventListener('click', () => toggleModal(myWishlistModal, false));
+        myWishlistModal.addEventListener('click', (e) => {
+            if (e.target === myWishlistModal) {
+                toggleModal(myWishlistModal, false);
+            }
+        });
+        
+        // Start the application
+        initApp();
+    </script>
+</body>
+</html>
+
+
