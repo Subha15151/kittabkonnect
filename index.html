@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookBazaar | Old Books Marketplace</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics-compat.js"></script>
+</head>
+<body>
+    <div class="auth-modal" id="authModal">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <div class="auth-logo-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="auth-logo-text">
+                        <h1>BookBazaar</h1>
+                        <p>India's Trusted Books Marketplace</p>
+                    </div>
+                </div>
+                
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="login">Login</button>
+                    <button class="auth-tab" data-tab="signup">Sign Up</button>
+                </div>
+            </div>
+            
+            <div class="auth-body">
+                <form id="loginForm" class="auth-form active">
+                    <div class="form-group">
+                        <label for="loginEmail" class="form-label required">Email Address</label>
+                        <input type="email" id="loginEmail" class="form-control" placeholder="you@example.com" required>
+                        <div class="form-message" id="loginEmailError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loginPassword" class="form-label required">Password</label>
+                        <div class="password-input">
+                            <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" required>
+                            <button type="button" class="password-toggle" data-target="loginPassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="form-message" id="loginPasswordError"></div>
+                    </div>
+                    
+                    <div class="form-check">
+                        <input type="checkbox" id="rememberMe" class="form-check-input">
+                        <label for="rememberMe" class="form-check-label">Remember me</label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block mt-4" id="loginBtn">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </button>
+                    
+                    <div class="auth-footer">
+                        <p>Don't have an account? <a class="auth-link" data-switch="signup">Sign up</a></p>
+                        <p style="margin-top: 0.5rem;">
+                            <a href="#" class="auth-link" id="forgotPasswordLink">Forgot Password?</a>
+                        </p>
+                    </div>
+                </form>
+                
+                <form id="signupForm" class="auth-form">
+                    <div class="form-group">
+                        <label for="signupName" class="form-label required">Full Name</label>
+                        <input type="text" id="signupName" class="form-control" placeholder="John Doe" required>
+                        <div class="form-message" id="signupNameError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signupEmail" class="form-label required">Email Address</label>
+                        <input type="email" id="signupEmail" class="form-control" placeholder="you@example.com" required>
+                        <div class="form-message" id="signupEmailError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signupPhone" class="form-label required">Phone Number</label>
+                        <input type="tel" id="signupPhone" class="form-control" placeholder="9876543210" pattern="[0-9]{10}" required>
+                        <div class="form-message" id="signupPhoneError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signupCity" class="form-label required">City</label>
+                        <input list="indianCities" id="signupCity" class="form-control" placeholder="Type to search your city..." required>
+                        <datalist id="indianCities">
+                            <option value="Berhampur">
+                            <option value="Bhubaneswar">
+                            <option value="Cuttack">
+                            <option value="Delhi">
+                            <option value="Mumbai">
+                            <option value="Bangalore">
+                            <option value="Hyderabad">
+                            <option value="Chennai">
+                            <option value="Kolkata">
+                            <option value="Pune">
+                            <option value="Ahmedabad">
+                            <option value="Jaipur">
+                            <option value="Lucknow">
+                            <option value="Rourkela">
+                            <option value="Sambalpur">
+                            <option value="Puri">
+                            <option value="Balasore">
+                            <option value="Indore">
+                            <option value="Chandigarh">
+                            <option value="Coimbatore">
+                            <option value="Mysore">
+                            <option value="Noida">
+                            <option value="Gurgaon">
+                            <option value="Kochi">
+                            <option value="Visakhapatnam">
+                            <option value="Surat">
+                            <option value="Nagpur">
+                            <option value="Patna">
+                            <option value="Bhopal">
+                            <option value="Vadodara">
+                            <option value="Ludhiana">
+                            <option value="Agra">
+                            <option value="Nashik">
+                            <option value="Faridabad">
+                            <option value="Meerut">
+                            <option value="Rajkot">
+                            <option value="Varanasi">
+                            <option value="Srinagar">
+                            <option value="Aurangabad">
+                            <option value="Dhanbad">
+                            <option value="Amritsar">
+                            <option value="Allahabad">
+                            <option value="Ranchi">
+                            <option value="Howrah">
+                            <option value="Jabalpur">
+                            <option value="Gwalior">
+                            <option value="Vijayawada">
+                            <option value="Jodhpur">
+                            <option value="Raipur">
+                            <option value="Kota">
+                            <option value="Guwahati">
+                            <option value="Thiruvananthapuram">
+                            <option value="Tiruchirappalli">
+                            <option value="Bareilly">
+                            <option value="Moradabad">
+                            <option value="Tiruppur">
+                            <option value="Aligarh">
+                            <option value="Jalandhar">
+                            <option value="Bhubaneswar">
+                            <option value="Salem">
+                            <option value="Warangal">
+                            <option value="Mira-Bhayandar">
+                            <option value="Jalgaon">
+                            <option value="Guntur">
+                        </datalist>
+                        <div class="form-message" id="signupCityError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signupPassword" class="form-label required">Password</label>
+                        <div class="password-input">
+                            <input type="password" id="signupPassword" class="form-control" placeholder="Create a strong password" required minlength="6">
+                            <button type="button" class="password-toggle" data-target="signupPassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="form-message" id="signupPasswordError"></div>
+                        <small style="display: block; margin-top: 0.25rem; color: var(--gray-500); font-size: 0.8rem;">
+                            Must be at least 6 characters
+                        </small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword" class="form-label required">Confirm Password</label>
+                        <div class="password-input">
+                            <input type="password" id="confirmPassword" class="form-control" placeholder="Re-enter your password" required>
+                            <button type="button" class="password-toggle" data-target="confirmPassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="form-message" id="confirmPasswordError"></div>
+                    </div>
+                    
+                    <div class="form-check">
+                        <input type="checkbox" id="agreeTerms" class="form-check-input" required>
+                        <label for="agreeTerms" class="form-check-label">
+                            I agree to the <a href="#" class="auth-link">Terms & Conditions</a> and <a href="#" class="auth-link">Privacy Policy</a>
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block mt-4" id="signupBtn">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </button>
+                    
+                    <div class="auth-footer">
+                        <p>Already have an account? <a class="auth-link" data-switch="login">Sign in</a></p>
+                    </div>
+                </form>
+                
+                <form id="forgotPasswordForm" class="auth-form">
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <div class="category-icon" style="width: 64px; height: 64px; margin: 0 auto 1rem; background: linear-gradient(135deg, var(--primary-light), var(--primary));">
+                            <i class="fas fa-key"></i>
+                        </div>
+                        <h3 style="margin-bottom: 0.5rem;">Reset Password</h3>
+                        <p style="color: var(--gray-600);">Enter your email to receive a password reset link</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="forgotEmail" class="form-label required">Email Address</label>
+                        <input type="email" id="forgotEmail" class="form-control" placeholder="you@example.com" required>
+                        <div class="form-message" id="forgotEmailError"></div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block mt-4" id="resetPasswordBtn">
+                        <i class="fas fa-paper-plane"></i> Send Reset Link
+                    </button>
+                    
+                    <div class="auth-footer">
+                        <p>Remember your password? <a class="auth-link" data-switch="login">Back to Login</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-website" id="mainWebsite">
+        <header class="main-header">
+            <div class="container header-container">
+                <a href="#" class="brand">
+                    <div class="brand-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="brand-text">
+                        <h1>BookBazaar</h1>
+                        <span>Buy & Sell Old Books</span>
+                    </div>
+                </a>
+                
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <div class="nav-container" id="navContainer">
+                    <nav class="nav-menu">
+                        <a href="#home" class="nav-link active">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                        <a href="#books" class="nav-link">
+                            <i class="fas fa-book"></i> Browse
+                        </a>
+                        <a href="#mybooks" class="nav-link">
+                            <i class="fas fa-bookmark"></i> My Books
+                        </a>
+                        <a href="#categories" class="nav-link">
+                            <i class="fas fa-th-large"></i> Categories
+                        </a>
+                        <a href="#how" class="nav-link">
+                            <i class="fas fa-question-circle"></i> How it Works
+                        </a>
+                    </nav>
+                    
+                    <div class="header-actions">
+                        <div class="search-container">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" class="search-input" placeholder="Search books...">
+                        </div>
+                        
+                        <button class="btn btn-sell" id="sellNowBtn">
+                            <i class="fas fa-plus"></i> Sell Book
+                        </button>
+                        
+                        <div class="user-menu" id="userMenu">
+                            <div class="user-avatar" id="userAvatar">U</div>
+                            <div class="user-info">
+                                <div class="user-name" id="userName">User</div>
+                                <div class="user-email" id="userEmail">user@example.com</div>
+                            </div>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="hero-section" id="home">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 class="hero-title">Buy & Sell Old Books in Berhampur & Beyond</h1>
+                    <p class="hero-subtitle">Discover thousands of second-hand books from local sellers in Odisha and all over India. Novels, textbooks, competitive books - all at 50-80% off!</p>
+                    
+                    <div class="hero-search">
+                        <input type="text" placeholder="Search for books (e.g., 'Harry Potter', 'NCERT', 'UPSC')">
+                        <button type="button">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                    
+                    <div class="hero-tags">
+                        <span class="hero-tag">📚 Novels & Fiction</span>
+                        <span class="hero-tag">🎓 Academic Textbooks</span>
+                        <span class="hero-tag">📈 Competitive Exams</span>
+                        <span class="hero-tag">👶 Children Books</span>
+                        <span class="hero-tag">💼 Business & Finance</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="stats-section">
+            <div class="container">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div class="stat-number" id="totalBooks">10,000+</div>
+                        <div class="stat-text">Books Listed</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-number" id="activeUsers">5,000+</div>
+                        <div class="stat-text">Active Users</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="stat-number" id="cities">100+</div>
+                        <div class="stat-text">Cities</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-handshake"></i>
+                        </div>
+                        <div class="stat-number" id="successRate">98%</div>
+                        <div class="stat-text">Success Rate</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section mybooks-section" id="mybooks">
+            <div class="container">
+                <div class="mybooks-header">
+                    <div class="section-title" style="margin-bottom: 0; text-align: left;">
+                        <h2>My Books</h2>
+                        <p>Manage your listings, mark books as sold, or delete them</p>
+                    </div>
+                    <button class="btn btn-primary" id="addNewBookBtn">
+                        <i class="fas fa-plus"></i> Add New Book
+                    </button>
+                </div>
+                
+                <div class="books-tabs" id="myBooksTabs">
+                    <button class="books-tab active" data-tab="active">Active Listings</button>
+                    <button class="books-tab" data-tab="sold">Sold Books</button>
+                    <button class="books-tab" data-tab="all">All Books</button>
+                </div>
+                
+                <div class="books-grid" id="myBooksGrid">
+                    </div>
+            </div>
+        </section>
+
+        <section class="section bg-gray-50" id="categories">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Browse by Category</h2>
+                    <p>Find books in your favorite categories from thousands of listings</p>
+                </div>
+                
+                <div class="categories-grid" id="categoriesGrid">
+                    </div>
+            </div>
+        </section>
+
+        <section class="section" id="books">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Recently Listed Books</h2>
+                    <p>Discover amazing deals on pre-loved books from sellers near you</p>
+                </div>
+                
+                <div class="books-grid" id="booksGrid">
+                    </div>
+            </div>
+        </section>
+
+        <section class="section bg-gray-50" id="how">
+            <div class="container">
+                <div class="section-title">
+                    <h2>How BookBazaar Works</h2>
+                    <p>Simple steps to buy and sell old books in your city</p>
+                </div>
+                
+                <div class="steps-grid">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <div class="step-icon">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <h3>List Your Book</h3>
+                        <p>Take photos, set your price, add details. List your book in just 2 minutes.</p>
+                    </div>
+                    
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <div class="step-icon">
+                            <i class="fas fa-bullhorn"></i>
+                        </div>
+                        <h3>Get Buyer Interest</h3>
+                        <p>Buyers in your city will contact you directly via WhatsApp or phone call.</p>
+                    </div>
+                    
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <div class="step-icon">
+                            <i class="fas fa-handshake"></i>
+                        </div>
+                        <h3>Meet & Sell</h3>
+                        <p>Meet at a safe public place or arrange delivery. Get paid in cash or UPI.</p>
+                    </div>
+                    
+                    <div class="step-card">
+                        <div class="step-number">4</div>
+                        <div class="step-icon">
+                            <i class="fas fa-rupee-sign"></i>
+                        </div>
+                        <h3>Earn Money</h3>
+                        <p>Sell your old books, earn extra cash, and clear up shelf space.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="main-footer">
+            <div class="container">
+                <div class="footer-grid">
+                    <div class="footer-col">
+                        <h3>BookBazaar</h3>
+                        <p>India's most trusted marketplace for buying and selling old books. Connect with local buyers and sellers.</p>
+                        <div class="social-links">
+                            <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-whatsapp"></i></a>
+                        </div>
+                    </div>
+                    
+                    <div class="footer-col">
+                        <h3>Quick Links</h3>
+                        <ul>
+                            <li><a href="#home">Home</a></li>
+                            <li><a href="#books">Browse Books</a></li>
+                            <li><a href="#mybooks">My Books</a></li>
+                            <li><a href="#categories">Categories</a></li>
+                            <li><a href="#how">How it Works</a></li>
+                            <li><a href="#" id="logoutBtn">Logout</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="footer-col">
+                        <h3>Safety Tips</h3>
+                        <ul>
+                            <li><a href="#">Meet in Public Places</a></li>
+                            <li><a href="#">Check Book Condition</a></li>
+                            <li><a href="#">Verify Seller/Buyer</a></li>
+                            <li><a href="#">Avoid Advance Payments</a></li>
+                            <li><a href="#">Report Suspicious Activity</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="footer-col">
+                        <h3>Contact Us</h3>
+                        <ul>
+                            <li><i class="fas fa-envelope"></i> support@bookbazaar.com</li>
+                            <li><i class="fas fa-phone"></i> +91 8328892577</li>
+                            <li><i class="fas fa-map-marker-alt"></i> Berhampur, Odisha, India</li>
+                            <li><i class="fas fa-clock"></i> Support: 9 AM - 9 PM</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="footer-bottom">
+                    <p>&copy; 2025 BookBazaar. All rights reserved. | Made with ❤️ in Berhampur, Odisha.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <div class="modal" id="sellModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Sell Your Book</h2>
+                <button class="close-modal" id="closeSellModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                </div>
+        </div>
+    </div>
+
+    <div class="modal" id="whatsappModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Contact Seller via WhatsApp</h2>
+                <button class="close-modal" id="closeWhatsAppModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="whatsappModalContent">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="confirmModal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2 id="confirmModalTitle">Confirm Action</h2>
+                <button class="close-modal" id="closeConfirmModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage">Are you sure you want to perform this action?</p>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button class="btn btn-outline" id="cancelConfirmBtn">Cancel</button>
+                    <button class="btn btn-danger" id="confirmActionBtn">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
