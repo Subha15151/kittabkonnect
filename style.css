@@ -36,6 +36,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent; /* Removes blue tap box on mobile */
 }
 
 body {
@@ -64,7 +65,7 @@ h1, h2, h3, h4, h5, h6 {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(15, 23, 42, 0.95);
+    background: rgba(15, 23, 42, 0.85); /* Slightly more transparent */
     backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
@@ -91,6 +92,9 @@ h1, h2, h3, h4, h5, h6 {
     overflow: hidden;
     box-shadow: var(--shadow-xl);
     animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;       /* Added for mobile layout */
+    flex-direction: column; /* Added for mobile layout */
+    max-height: 90vh;    /* Prevent it from being taller than screen on desktop */
 }
 
 @keyframes slideUp {
@@ -111,6 +115,7 @@ h1, h2, h3, h4, h5, h6 {
     text-align: center;
     position: relative;
     overflow: hidden;
+    flex-shrink: 0; /* Ensures header doesn't shrink */
 }
 
 .auth-header::before {
@@ -198,24 +203,22 @@ h1, h2, h3, h4, h5, h6 {
 
 .auth-body {
     padding: 2.5rem 2rem;
-    max-height: 70vh;
     overflow-y: auto;
+    flex: 1; /* Allows body to fill remaining space */
 }
 
+/* Custom Scrollbar */
 .auth-body::-webkit-scrollbar {
     width: 6px;
 }
-
 .auth-body::-webkit-scrollbar-track {
     background: var(--gray-100);
     border-radius: 10px;
 }
-
 .auth-body::-webkit-scrollbar-thumb {
     background: var(--gray-300);
     border-radius: 10px;
 }
-
 .auth-body::-webkit-scrollbar-thumb:hover {
     background: var(--gray-400);
 }
@@ -288,7 +291,7 @@ h1, h2, h3, h4, h5, h6 {
     outline: none;
     border-color: var(--primary);
     background: white;
-    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15); /* GLOW EFFECT */
 }
 
 .password-input {
@@ -496,61 +499,6 @@ h1, h2, h3, h4, h5, h6 {
     to { transform: rotate(360deg); }
 }
 
-@media (max-width: 640px) {
-    .auth-modal {
-        padding: 0.5rem;
-        align-items: flex-start;
-        padding-top: 2rem;
-    }
-    
-    .auth-card {
-        max-width: 100%;
-        border-radius: var(--radius-lg);
-    }
-    
-    .auth-header {
-        padding: 2rem 1.5rem;
-    }
-    
-    .auth-body {
-        padding: 2rem 1.5rem;
-        max-height: calc(100vh - 200px);
-    }
-    
-    .auth-logo {
-        flex-direction: column;
-        text-align: center;
-        gap: 0.75rem;
-    }
-    
-    .auth-logo-icon {
-        width: 48px;
-        height: 48px;
-        font-size: 1.5rem;
-    }
-    
-    .auth-logo-text h1 {
-        font-size: 1.75rem;
-    }
-    
-    .auth-tabs {
-        max-width: 280px;
-    }
-    
-    .auth-tab {
-        padding: 0.75rem;
-        font-size: 0.95rem;
-    }
-    
-    .form-control {
-        padding: 0.875rem 1rem;
-    }
-    
-    .btn-block {
-        padding: 1rem;
-    }
-}
-
 /* ====== MAIN WEBSITE ====== */
 .main-website {
     display: none;
@@ -561,9 +509,10 @@ h1, h2, h3, h4, h5, h6 {
     display: block;
 }
 
-/* ====== HEADER ====== */
+/* ====== HEADER (GLASS DESIGN ADDED) ====== */
 .main-header {
-    background: white;
+    background: rgba(255, 255, 255, 0.9); /* Translucent */
+    backdrop-filter: blur(10px);          /* Frosted Glass Effect */
     border-bottom: 1px solid var(--gray-200);
     position: sticky;
     top: 0;
@@ -701,12 +650,20 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 0.85rem;
 }
 
+/* PULSE ANIMATION */
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
 .btn-sell {
     background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
     color: white;
     padding: 0.6rem 1rem;
     font-size: 0.8rem;
     white-space: nowrap;
+    animation: pulse 2s infinite; /* ADDED ANIMATION */
 }
 
 .btn-sell:hover {
@@ -1443,7 +1400,6 @@ h1, h2, h3, h4, h5, h6 {
     display: none;
     justify-content: center;
     align-items: center;
-    /* CHANGED: Set to 10000 to be ABOVE the Auth Modal (z-index 9999) */
     z-index: 10000;
     animation: fadeIn 0.3s ease;
 }
@@ -1611,6 +1567,68 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @media (max-width: 640px) {
+    /* --- MOBILE LOGIN FIX: FULL SCREEN --- */
+    .auth-modal {
+        padding: 0;         /* Remove padding around modal */
+        align-items: flex-end; /* Push to bottom or cover screen */
+    }
+    
+    .auth-card {
+        max-width: 100%;
+        height: 100%;       /* Force Full Height */
+        border-radius: 0;   /* Remove rounded corners */
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .auth-header {
+        padding: 2rem 1.5rem;
+        flex-shrink: 0;
+    }
+    
+    .auth-body {
+        padding: 2rem 1.5rem;
+        padding-bottom: 4rem; /* Extra space at bottom for scrolling */
+        flex: 1;              /* Fill remaining space */
+        max-height: none;     /* Allow full height */
+        overflow-y: auto;     /* Enable scrolling */
+    }
+    
+    .auth-logo {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+    
+    .auth-logo-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 1.5rem;
+    }
+    
+    .auth-logo-text h1 {
+        font-size: 1.75rem;
+    }
+    
+    .auth-tabs {
+        max-width: 280px;
+    }
+    
+    .auth-tab {
+        padding: 0.75rem;
+        font-size: 0.95rem;
+    }
+    
+    .form-control {
+        padding: 0.875rem 1rem;
+    }
+    
+    .btn-block {
+        padding: 1rem;
+        margin-bottom: 1rem; /* Ensure space below button */
+    }
+
+    /* --- OTHER MOBILE ADJUSTMENTS --- */
     .hero-title {
         font-size: 1.75rem;
     }
